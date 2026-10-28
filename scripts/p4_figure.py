@@ -96,7 +96,7 @@ def main() -> None:
     fig.suptitle(f"ESM-2 150M: projecting a secondary-structure direction out of the residual stream during the forward pass "
                  f"({m['n_chains']} held-out chains, {m['n_residues']:,} residues; bars = 95% CI over chains)",
                  color=INK, fontsize=9.5, x=0.01, ha="left")
-    fig.subplots_adjust(left=0.085, right=0.99, top=0.84, bottom=0.17, wspace=0.12)
+    fig.subplots_adjust(left=0.115, right=0.99, top=0.84, bottom=0.17, wspace=0.14)
     out = d / "ablation.png"
     fig.savefig(out, dpi=160, facecolor=SURFACE)
     print(f"saved {out.relative_to(ROOT)}")
