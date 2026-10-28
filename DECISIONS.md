@@ -183,3 +183,24 @@ Full run: 3 scopes x 8 direction kinds, 548 held-out chains, 113,279 residues,
 baseline. Load-bearing: yes, specifically and measurably, but weakly, and only
 the class-mean geometry is what the model reads; the probe's own direction
 barely figures in the model's predictions. Luis has not reviewed this.
+
+## 2026-10-28 — Closed out (Claude)
+
+- **Clean-clone check passed.** `git clone` into a scratch folder, `uv sync`,
+  `uv run pytest -q` with `HF_HUB_OFFLINE=1` (26 passed), then the full P1, a
+  20-chain P2, a 3-layer P3 with figure, a 12-chain P4 (probe_H, dm_sub, random
+  at layer 29) with figure, and the masking check: every script's own checks
+  passed; the reduced P4 reproduced the full run's shape (probe_H helix −0.007
+  vs coil −0.001; dm_sub refit 0.20; random null). The one failure on the way
+  was the test command itself: a `--limit N` run writes to `<recording>_limitN`,
+  which the next script must be given; now documented in the README.
+- **Committed:** code, tests, lock file, README, this log, and every result
+  except the large regenerable files: `results/p2/*/acts.npy` (4.5 GB) and
+  `results/p4/*/per_residue.npz` (47 MB) are gitignored, as is `data/raw/`.
+  `results/p3/*/yhat_by_layer.npy` (3.5 MB, held-out predictions per layer) is
+  kept. Three local commits; no remote.
+- **Compute, whole project:** P2 22 s, P3 54 s, P4 58 min, checks ~2 min; about
+  1 h 5 min of GPU time on the M4 Pro, no paid calls.
+- **Not done, by choice or scope:** ESM-2 650M; family-grouped folds; exact
+  single-residue PLL; cumulative multi-layer erasure with refit directions; a
+  review of any of this by Luis.

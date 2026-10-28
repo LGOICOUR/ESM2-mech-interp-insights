@@ -191,8 +191,18 @@ Every script prints its own checks and refuses to continue if one fails
 (label/sequence alignment, no duplicate chains, finite activations, layer-0
 probe = identity baseline, P4's unablated pass matches the P2 recording, the
 removed coordinate is zero after the hook). Nothing calls a paid API. Quick
-versions: `p2_read.py --limit 20`, `p3_probe.py --layers 0 15 29 --n-boot 50`,
-`p4_ablate.py --limit 12 --kinds probe_H random --scopes single`.
+versions (each `--limit N` run writes to its own `<recording>_limitN` folder,
+which the next script takes as `--recording`):
+
+```bash
+uv run python scripts/p2_read.py --limit 20
+uv run python scripts/p3_probe.py --recording esm2_t30_150M_limit20 --layers 0 15 29 --n-boot 50
+uv run python scripts/p4_ablate.py --recording esm2_t30_150M_limit20 --limit 12 --kinds probe_H dm_sub random --scopes single --n-boot 50
+uv run python scripts/p4_figure.py --recording esm2_t30_150M_limit20_limit12
+```
+
+That reduced chain, plus the tests and the full P1, was run from a fresh
+`git clone` of this repository on 2026-10-28 and passed every check.
 
 The 650M model is a flag (`--model facebook/esm2_t33_650M_UR50D` on `p2_read.py`,
 then `--recording esm2_t33_650M` downstream) and was not run.
