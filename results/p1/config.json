@@ -1,0 +1,51 @@
+{
+ "hf_repo": "lamm-mit/protein-secondary-structure-netsurfp",
+ "hf_revision": "84141978b55a1730a7e265920ee11aebefb0837f",
+ "files": {
+  "ts115": "ts115.jsonl",
+  "cb513": "cb513.jsonl"
+ },
+ "per_split_raw": {
+  "ts115": {
+   "rows": 115,
+   "residues": 29704,
+   "labelled_residues": 29704
+  },
+  "cb513": {
+   "rows": 513,
+   "residues": 144360,
+   "labelled_residues": 84686
+  }
+ },
+ "dedupe": {
+  "n_in": 628,
+  "n_duplicate_rows": 79,
+  "n_conflicting_chains_dropped": 0,
+  "n_out": 549
+ },
+ "filter": {
+  "n_too_long": 1,
+  "n_without_labels": 0,
+  "n_out": 548
+ },
+ "max_proteins": null,
+ "seed": 0,
+ "n_proteins": 548,
+ "n_residues": 135365,
+ "n_labelled_residues": 113279,
+ "class_fraction": {
+  "H": 0.3544875925811492,
+  "E": 0.21441750015448582,
+  "C": 0.431094907264365
+ },
+ "length": {
+  "min": 20,
+  "median": 213.0,
+  "mean": 247.01642335766422,
+  "max": 874
+ },
+ "by_split": {
+  "ts115": 114,
+  "cb513": 434
+ }
+}

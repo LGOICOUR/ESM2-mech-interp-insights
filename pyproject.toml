@@ -1,0 +1,18 @@
+[project]
+name = "esm2-probe-ablation"
+version = "0.1.0"
+description = "Decodable vs load-bearing: layer-wise probes for secondary structure on ESM-2's residual stream, then project the direction out during the forward pass and measure what the model's own predictions lose."
+requires-python = ">=3.12"
+dependencies = [
+    "huggingface-hub>=1.33.0",
+    "matplotlib>=3.11",
+    "numpy>=2.0",
+    "pytest>=9.1.1",
+    "scikit-learn>=1.9.1",
+    "torch>=2.5",
+    "transformers>=4.51",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-p no:cacheprovider"

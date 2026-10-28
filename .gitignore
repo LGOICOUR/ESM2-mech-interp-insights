@@ -1,0 +1,16 @@
+# environment
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.DS_Store
+.env
+
+# downloaded raw data (p1_data.py regenerates it)
+data/raw/
+
+# large activation recordings (p2_read.py / p4_ablate.py regenerate them)
+results/p2/*/acts_*.npy
+results/p2/*/acts.npy
+results/p4/*/acts_*.npy
+results/p4/**/acts_*.npy
