@@ -57,15 +57,15 @@ def main() -> None:
             ax.spines[s].set_visible(False)
         ax.set_xlim(layers[0], layers[-1])
     h = m["headline"]
-    fig.suptitle(f"ESM-2 150M, per-residue secondary structure (helix / strand / coil), {m['n_residues']:,} residues in "
-                 f"{m['n_proteins']} held-out chains. Headline probe (layer chosen inside training, {m['chosen_layer_per_fold']}): "
+    fig.suptitle(f"ESM-2 150M, per-residue secondary structure (helix / strand / coil): {m['n_residues']:,} residues in "
+                 f"{m['n_proteins']} held-out chains\nheadline probe at the layer chosen inside training ({m['chosen_layer_per_fold']}): "
                  f"accuracy {h['accuracy']:.3f} [{h['accuracy_ci'][0]:.3f}, {h['accuracy_ci'][1]:.3f}], "
                  f"macro-F1 {h['macro_f1']:.3f} [{h['macro_f1_ci'][0]:.3f}, {h['macro_f1_ci'][1]:.3f}]",
                  color=INK, fontsize=9.5, x=0.01, ha="left")
     axes[0].set_title("accuracy by layer; shaded = 95% CI from resampling chains", color=INK2, fontsize=9, loc="left")
     axes[1].set_title("macro-F1 by layer; vertical line = layer chosen inside training", color=INK2, fontsize=9, loc="left")
     axes[0].legend(loc="upper left", frameon=False, fontsize=8, labelcolor=INK)
-    fig.tight_layout(rect=(0, 0, 1, 0.95))
+    fig.tight_layout(rect=(0, 0, 1, 0.92))
     out = d / "layer_curves.png"
     fig.savefig(out, dpi=160, facecolor=SURFACE)
     print(f"saved {out.relative_to(ROOT)}")

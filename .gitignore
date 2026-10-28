@@ -14,3 +14,6 @@ results/p2/*/acts_*.npy
 results/p2/*/acts.npy
 results/p4/*/acts_*.npy
 results/p4/**/acts_*.npy
+
+# per-residue read-outs for every ablation condition (47 MB; p4_ablate.py regenerates them)
+results/p4/*/per_residue.npz

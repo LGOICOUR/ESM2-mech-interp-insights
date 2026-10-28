@@ -113,3 +113,73 @@ against the P4 table as written. Confidence in brackets.
 Metrics are fixed as implemented in `scripts/p4_ablate.py` before this entry:
 k = 8 masking passes, 40k-residue direction fits per fold with P3's chosen C,
 chain-grouped folds (seed 0), 1,000-draw chain bootstraps.
+
+## 2026-10-28 — Masking-scheme check (Claude, run while P4 was in progress; P4's design was not changed)
+
+`scripts/check_masking.py`, 6 random chains: the k = 8 read-out (every 8th
+residue masked per pass) gives a mean PLL 0.022 nats *below* the exact
+one-residue-per-pass PLL (masked neighbours 8 apart cost a little context);
+per-residue |difference| 0.17 nats; top-1 agreement 87%. Every P4 condition,
+including the unablated baseline, uses the identical schedule, so the scheme's
+bias cancels in the ΔPLL differences; the per-residue noise it reveals is why
+effects are reported as class means over tens of thousands of residues with
+chain-resampled CIs, never per residue.
+
+## 2026-10-28 — P4 ran (Claude): predictions against the table
+
+Full run: 3 scopes x 8 direction kinds, 548 held-out chains, 113,279 residues,
+58 min on the Mac GPU. Baseline masked PLL -1.958 nats, top-1 39.2%. Table in
+`results/p4/esm2_t30_150M/summary.md`; figure `ablation.png`.
+
+1. **Random controls null: held.** ΔPLL -0.000 (layer 29), -0.002 (26–30),
+   -0.003 (12–18); two-direction planes -0.001 / -0.004 / -0.006; top-1 changed
+   1.5–6%; original and refit probes 0.81 = baseline everywhere.
+2. **One direction is a line, not the concept: held in direction, missed in
+   size.** probe_H at 29: original probe helix F1 0.86 → 0.15; refit 0.76 at 29
+   and 0.76 at 30, a 0.05 drop, not the 0.03 predicted. The class-mean strand
+   direction is the exception: removing it alone drops the refit at 29 to 0.59
+   (strand F1 0.22), recovering to 0.74 at layer 30.
+3. **Small, class-specific output effects at layer 29: held in direction,
+   half the predicted size.** probe_H: helix -0.011 [-0.012, -0.010], strand
+   -0.004, coil -0.001; probe_E: strand -0.009, helix -0.004, coil -0.000;
+   random -0.000. The double dissociation is there with CIs ten times tighter
+   than the effects, but the effects are 0.01 nats, below the predicted
+   -0.02 to -0.10. dm_H is specific (helix -0.031 vs strand -0.004); dm_E is not
+   (-0.037 / -0.040 / -0.032).
+4. **Band 26–30 moves more, keeps specificity: held for the probe directions
+   (2.5–3x: helix -0.028 vs strand -0.015; strand -0.030 vs helix -0.012) and
+   for dm_H (-0.072 vs -0.018), at a quarter of the predicted size. dm_E at the
+   band is large and unspecific: helix -0.154, strand -0.111, coil -0.161.**
+5. **Class-mean directions move the output more than probe directions: held**
+   at every scope and class (2–4x).
+6. **Plane removal at the band: held for the class-mean plane** (ΔPLL -0.207 /
+   -0.148 / -0.233; original probe 0.34; refit 0.70), **wrong by 10x for the
+   probe plane** (-0.032 / -0.035 / -0.015, predicted -0.2 to -0.5; original
+   0.20; refit 0.73). The probe's own plane is nearly irrelevant to the output.
+7. **Mid band 12–18 is recomputed: held.** Refit at 29 and 30 back at 0.81
+   (0.80 for dm_sub); even the *original* clean probe reads 0.81, so the late
+   representation is rebuilt in the same directions. Output effects smaller than
+   the late band (probe plane -0.013 vs -0.032; class-mean plane -0.08 to -0.12
+   vs -0.15 to -0.23) but not zero: the mid-layer class-mean plane carries
+   something the output uses that is not the final secondary-structure
+   representation.
+
+**Two things learnt that were not predicted.**
+- Removing the class-mean plane *at a single layer* equalizes the three
+  class-conditional means there, so by the LEACE result (Belrose et al. 2023)
+  no linear classifier can beat a constant predictor at that layer: the refit
+  reads 0.22 (chance 0.20). The next layer rebuilds part of it (0.56 at 30),
+  and the output loses only 0.06 nats. Removing the probe's plane at the same
+  layer leaves 0.71 decodable and costs 0.01 nats. Same lesson as
+  probe-monitor-control: the model reads the class-mean plane, the probe reads
+  a different line through the concept.
+- Stacked projections with directions fit on clean activations are not
+  cumulative: after projecting the class-mean plane out of layers 26–28, the
+  clean-fit plane at 29 no longer equalizes the means there (refit 0.70 vs 0.22
+  for 29 alone), because the upstream ablations move the class means off the
+  clean plane. A multi-layer erasure has to refit on the ablated stream.
+
+**Verdict on the brief's question.** Decodable: yes, 0.82 vs a 0.61 no-model
+baseline. Load-bearing: yes, specifically and measurably, but weakly, and only
+the class-mean geometry is what the model reads; the probe's own direction
+barely figures in the model's predictions. Luis has not reviewed this.

@@ -146,7 +146,6 @@ def main() -> None:
         logp [n], top1 [n], and recorded activations {layer: [n, W] float16}."""
         logp, top1 = np.zeros(len(y)), np.zeros(len(y), dtype=np.int64)
         A = {L: np.zeros((len(y), width), dtype=np.float16) for L in record}
-        r0 = 0
         for f in range(5):
             handles = attach(model, dirs_by_fold[f], ctx, device) if dirs_by_fold is not None else []
             try:
@@ -154,8 +153,7 @@ def main() -> None:
                     if folds_all[starts[i]] != f:
                         continue
                     seq = proteins[i].sequence
-                    n = starts[i + 1] - starts[i]
-                    sel = np.where((g == i))[0]
+                    sel = np.where(g == i)[0]
                     r = masked_readout(tok, model, device, seq, args.k, ctx=ctx)
                     logp[sel], top1[sel] = r.logp_true[lab_pos[i]], r.top1[lab_pos[i]]
                     batch = encode(tok, [seq], device)
@@ -169,7 +167,6 @@ def main() -> None:
                         A[L][sel] = rec.out[L][0, 1:len(seq) + 1][lab_pos[i]].to(torch.float16).cpu().numpy()
                     if dirs_by_fold is None:
                         true_tok[sel] = batch.input_ids[0, 1:len(seq) + 1][lab_pos[i]].cpu().numpy()
-                    r0 += n
             finally:
                 for h in handles:
                     h.remove()

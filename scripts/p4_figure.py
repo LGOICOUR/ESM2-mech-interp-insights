@@ -39,8 +39,8 @@ def main() -> None:
 
     plt.rcParams.update({"font.family": "sans-serif", "font.size": 10, "axes.edgecolor": GRID,
                          "axes.labelcolor": INK2, "xtick.color": INK2, "ytick.color": INK2})
-    fig, axes = plt.subplots(1, len(scopes) + 1, figsize=(4.2 * (len(scopes) + 1), 5.2), facecolor=SURFACE,
-                             gridspec_kw={"width_ratios": [1] * len(scopes) + [0.9]})
+    fig, axes = plt.subplots(1, len(scopes) + 1, figsize=(4.0 * (len(scopes) + 1), 5.0), facecolor=SURFACE,
+                             gridspec_kw={"width_ratios": [1] * len(scopes) + [0.85]})
     ypos = np.arange(len(kinds))[::-1]
     for ax, scope in zip(axes, scopes):
         ax.set_facecolor(SURFACE)
@@ -59,8 +59,8 @@ def main() -> None:
         lay = f"layer {layers[0]}" if len(layers) == 1 else f"layers {layers[0]}–{layers[-1]}"
         ax.set_title(f"removed at {lay} ({scope})", color=INK, fontsize=10, loc="left")
         ax.set_yticks(ypos)
-        ax.set_yticklabels([KIND_LABEL[k] for k in kinds], fontsize=8.5)
-        ax.set_xlabel("Δ masked log-likelihood of the true residue (nats)")
+        ax.set_yticklabels([KIND_LABEL[k] for k in kinds] if ax is axes[0] else [""] * len(kinds), fontsize=8.5)
+        ax.set_xlabel("Δ masked log-likelihood of the true residue (nats)", fontsize=9)
         ax.grid(axis="x", color=GRID, lw=1)
         ax.set_axisbelow(True)
         for s in ("top", "right"):
@@ -71,8 +71,9 @@ def main() -> None:
     ax.set_facecolor(SURFACE)
     base = m["baseline"]["decodability"][str(L_star)]["refit_probe"]["macro_f1"]
     ax.axvline(base, color=INK2, lw=1, zorder=1)
-    ax.text(base, len(kinds) - 0.4, f"no ablation {base:.2f}", color=INK2, fontsize=8, ha="right", va="bottom", rotation=90)
     markers = {"single": "o", "band": "s", "mid": "^", "wide": "D"}
+    scope_name = {"single": f"layer {L_star}", "band": f"layers {m['scopes'].get('band', [0])[0]}–{m['scopes'].get('band', [0])[-1]}",
+                  "mid": f"layers {m['scopes'].get('mid', [0])[0]}–{m['scopes'].get('mid', [0])[-1]}", "wide": "wide"}
     for scope in scopes:
         xo, xr = [], []
         for k in kinds:
@@ -80,22 +81,22 @@ def main() -> None:
             dec = r["decodability"][str(L_star)] if r else None
             xo.append(dec["original_probe"]["macro_f1"] if dec else np.nan)
             xr.append(dec["refit_probe"]["macro_f1"] if dec else np.nan)
-        ax.plot(xo, ypos, markers[scope], color=GRID, mec=INK2, ms=5, ls="none", zorder=2, label=f"original probe, {scope}")
-        ax.plot(xr, ypos, markers[scope], color=CLASS_COLORS["H"], ms=5, ls="none", zorder=3, label=f"refit probe, {scope}")
+        ax.plot(xo, ypos, markers[scope], color=SURFACE, mec=INK2, ms=5.5, ls="none", zorder=2)
+        ax.plot(xr, ypos, markers[scope], color=CLASS_COLORS["H"], ms=5.5, ls="none", zorder=3, label=f"removed at {scope_name[scope]}")
     ax.set_yticks(ypos)
     ax.set_yticklabels([])
     ax.set_xlim(0.1, 0.9)
-    ax.set_xlabel(f"macro-F1 of a probe at layer {L_star} after ablation")
-    ax.set_title("is the concept still there?", color=INK, fontsize=10, loc="left")
+    ax.set_xlabel(f"probe macro-F1 at layer {L_star} after ablation\n(line = no ablation, {base:.2f})", fontsize=9)
+    ax.set_title("is the concept still there?\nhollow = original probe, filled = refit probe", color=INK, fontsize=9.5, loc="left")
     ax.grid(axis="x", color=GRID, lw=1)
     ax.set_axisbelow(True)
     for s in ("top", "right"):
         ax.spines[s].set_visible(False)
-    ax.legend(loc="lower left", frameon=False, fontsize=7, labelcolor=INK)
+    ax.legend(loc="lower left", frameon=False, fontsize=7.5, labelcolor=INK, handletextpad=0.3)
     fig.suptitle(f"ESM-2 150M: projecting a secondary-structure direction out of the residual stream during the forward pass "
                  f"({m['n_chains']} held-out chains, {m['n_residues']:,} residues; bars = 95% CI over chains)",
                  color=INK, fontsize=9.5, x=0.01, ha="left")
-    fig.tight_layout(rect=(0, 0, 1, 0.95))
+    fig.subplots_adjust(left=0.085, right=0.99, top=0.84, bottom=0.17, wspace=0.12)
     out = d / "ablation.png"
     fig.savefig(out, dpi=160, facecolor=SURFACE)
     print(f"saved {out.relative_to(ROOT)}")
