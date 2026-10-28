@@ -107,6 +107,45 @@ decodable, the decoded direction is causally used for the right class, and
 nearly all of what the model actually reads lives in the class-mean geometry,
 not in the probe's weight vector.
 
+**Follow-up: is what the probe reads *beyond* the class-mean direction used?**
+The probe direction and the class-mean direction overlap (cosine 0.66 helix,
+0.61 strand), so the rows above cannot say whether the model reads the probe's
+own information or only the part the two share. Split each direction into its
+component along the other and the unit remainder orthogonal to it, and remove
+the remainder alone: "probe's helix direction, class-mean part removed" is the
+probe's helix weight vector minus its component along the class-mean helix
+direction. Pre-registered in `DECISIONS.md`; full table with CIs in
+[`results/p4/esm2_t30_150M_perp/summary.md`](results/p4/esm2_t30_150M_perp/summary.md).
+
+| direction removed | layers | Δ log-lik., helix residues | strand residues | coil residues | refit probe at 29 (baseline 0.81) |
+|---|---|---|---|---|---|
+| probe's helix direction, class-mean part removed | 29 | −0.002 [−0.003, −0.002] | −0.003 | −0.001 | 0.79 |
+| probe's strand direction, class-mean part removed | 29 | −0.008 | −0.008 | −0.009 | 0.78 |
+| class-mean helix direction, probe part removed | 29 | **−0.010** [−0.011, −0.008] | −0.003 | −0.006 | 0.81 |
+| class-mean strand direction, probe part removed | 29 | −0.042 | −0.034 | −0.037 | 0.81 |
+| random direction (control) | 29 | −0.000 | −0.000 | −0.000 | 0.81 |
+| probe's helix direction, class-mean part removed | 26–30 | −0.009 | −0.009 | −0.004 | 0.80 |
+| probe's strand direction, class-mean part removed | 26–30 | −0.018 | −0.017 | −0.033 | 0.79 |
+| class-mean helix direction, probe part removed | 26–30 | **−0.032** [−0.035, −0.029] | −0.012 | −0.010 | 0.81 |
+| class-mean strand direction, probe part removed | 26–30 | −0.195 | −0.118 | −0.220 | 0.81 |
+| random direction (control) | 26–30 | −0.002 | −0.002 | −0.002 | 0.81 |
+
+What the probe reads beyond the class-mean direction is not used by the model.
+The helix remainder costs helix residues 0.002 nats (the full probe direction
+0.011, the class-mean direction 0.031) with no specificity; the strand
+remainder costs 0.008 on every class alike, the signature of variance removed
+rather than of strand information. The probe's direction is the sharper
+separator (d' 2.7 against 1.75 for the class-mean direction, on held-out
+residues; `scripts/check_variance.py`) with a third of its variance: a
+discriminative probe points toward a low-variance direction where the classes
+separate cleanly, and the model's output is insensitive to that direction. The
+remainder of the class-mean helix direction, by contrast, still carries helix
+signal (d' 1.15) and still costs helix residues specifically. The strand
+class-mean direction and its remainder are the two highest-variance single
+directions (3.5% and 4.5% of the layer's variance) and the most damaging,
+equally for every class. The random control, at 0.18% of the variance, is not
+variance-matched; a variance-matched control was not run.
+
 ## Caveats, what did not work first
 
 - **The effect sizes are small.** The strongest single-direction effect at the
@@ -180,11 +219,13 @@ not in the probe's weight vector.
 
 ```bash
 uv sync
-uv run pytest -q                              # 26 offline tests, no network, ~6 s
+uv run pytest -q                              # 27 offline tests, no network, ~6 s
 uv run python scripts/p1_data.py              # downloads two label files from Hugging Face (~0.4 MB)
 uv run python scripts/p2_read.py              # downloads ESM-2 150M (~0.6 GB); records 4.5 GB of activations in ~25 s on an M4 Pro
 uv run python scripts/p3_probe.py && uv run python scripts/p3_figure.py     # ~1 min
 uv run python scripts/p4_ablate.py && uv run python scripts/p4_figure.py    # ~1 h for 24 conditions (3 scopes × 8 directions)
+uv run python scripts/p4_ablate.py --kinds probe_H_perp probe_E_perp random dm_H_perp dm_E_perp --scopes single band --tag perp   # ~26 min; the remainder follow-up, into results/p4/esm2_t30_150M_perp/
+uv run python scripts/check_variance.py       # variance share and class gap of every direction at layer 29, ~1 min
 ```
 
 Every script prints its own checks and refuses to continue if one fails
@@ -212,10 +253,12 @@ then `--recording esm2_t33_650M` downstream) and was not run.
 ```
 src/esm2_probe/   data (labels, de-duplication, one-hot baselines), reader (hooks, masked read-out),
                   probe (grouped CV, CIs, directions), ablate (projection hook), baselines
-scripts/          p1_data -> p2_read -> p3_probe (+ p3_figure) -> p4_ablate (+ p4_figure); each prints its checks
+scripts/          p1_data -> p2_read -> p3_probe (+ p3_figure) -> p4_ablate (+ p4_figure); each prints its checks;
+                  check_masking and check_variance are diagnostics
 tests/            offline tests on synthetic data and a fake model (no network)
 results/          p1 proteins + config; p2 index + summary (activations are not committed);
-                  p3 metrics, layer curves, figure; p4 metrics, per-residue read-outs, ablation table, figure
+                  p3 metrics, layer curves, figure; p4 metrics, per-residue read-outs, ablation table, figure;
+                  p4 <recording>_perp: the remainder follow-up and its variance check
 DECISIONS.md      dated log of every choice, with the ablation's expectations written before it ran
 ```
 
@@ -233,7 +276,10 @@ the metrics, the layer scopes, the direction kinds and the masking scheme, and
 wrote the pre-registered expectations in `DECISIONS.md` (Luis was not available
 to dictate them). The checks on that work are the offline tests, the
 ground-truth labels, the baselines and controls that sit beside every number,
-and the scripts' own assertions.
+and the scripts' own assertions. The remainder follow-up (the last block of
+the headline) was added the same day at Luis's request, after he was walked
+through the first result and asked whether the probe's own information is
+used; the agent pre-registered it, ran it and wrote it up.
 
 **Luis has not yet reviewed the result.** Until he says otherwise, treat the
 numbers as an agent's unreviewed run of an honest pipeline: reproducible from

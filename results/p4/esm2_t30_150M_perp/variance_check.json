@@ -1,0 +1,80 @@
+{
+ "layer": 29,
+ "n_residues": 113279,
+ "total_variance": 31383.64453125,
+ "width": 640,
+ "per_kind": {
+  "probe_H": {
+   "rms_removed": 12.365917841885642,
+   "share_of_total_variance": 0.004872471835449222,
+   "dprime_H_vs_rest": 2.6755954742431642,
+   "dprime_E_vs_rest": -1.5114708423614502
+  },
+  "probe_E": {
+   "rms_removed": 11.788493892641076,
+   "share_of_total_variance": 0.0044280576820343205,
+   "dprime_H_vs_rest": -1.4709115743637085,
+   "dprime_E_vs_rest": 2.3597983837127687
+  },
+  "dm_H": {
+   "rms_removed": 22.68737651696767,
+   "share_of_total_variance": 0.01640080560784236,
+   "dprime_H_vs_rest": 1.7492111206054688,
+   "dprime_E_vs_rest": -0.431075793504715
+  },
+  "dm_E": {
+   "rms_removed": 33.15965978579055,
+   "share_of_total_variance": 0.03503618058171971,
+   "dprime_H_vs_rest": -0.2453055426478386,
+   "dprime_E_vs_rest": 1.1262749433517456
+  },
+  "probe_sub": {
+   "rms_removed": 17.01480247954612,
+   "share_of_total_variance": 0.009224661690572556,
+   "dprime_H_vs_rest": null,
+   "dprime_E_vs_rest": null
+  },
+  "dm_sub": {
+   "rms_removed": 42.41268863473009,
+   "share_of_total_variance": 0.05731763101749979,
+   "dprime_H_vs_rest": null,
+   "dprime_E_vs_rest": null
+  },
+  "probe_H_perp": {
+   "rms_removed": 13.043428858124429,
+   "share_of_total_variance": 0.005421009539142166,
+   "dprime_H_vs_rest": -0.01042155846953392,
+   "dprime_E_vs_rest": -0.9127277731895447
+  },
+  "probe_E_perp": {
+   "rms_removed": 21.196000150105707,
+   "share_of_total_variance": 0.014315431782179536,
+   "dprime_H_vs_rest": -0.5137998402118683,
+   "dprime_E_vs_rest": -0.0266650453209877
+  },
+  "dm_H_perp": {
+   "rms_removed": 23.06365451145651,
+   "share_of_total_variance": 0.016949343117054528,
+   "dprime_H_vs_rest": 1.146988832950592,
+   "dprime_E_vs_rest": 0.055997132882475854
+  },
+  "dm_E_perp": {
+   "rms_removed": 37.54816665745396,
+   "share_of_total_variance": 0.0449235530287783,
+   "dprime_H_vs_rest": 0.00624378640204668,
+   "dprime_E_vs_rest": 0.769609808921814
+  },
+  "random": {
+   "rms_removed": 7.573474229298959,
+   "share_of_total_variance": 0.0018276243170146224,
+   "dprime_H_vs_rest": -0.00281125009059906,
+   "dprime_E_vs_rest": 0.008668209752067923
+  },
+  "random_sub": {
+   "rms_removed": 9.436866991653748,
+   "share_of_total_variance": 0.0028376072934897293,
+   "dprime_H_vs_rest": null,
+   "dprime_E_vs_rest": null
+  }
+ }
+}

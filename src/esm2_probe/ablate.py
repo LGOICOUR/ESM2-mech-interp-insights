@@ -8,7 +8,9 @@ so every residue has the same coordinate along u that mu has: the information
 along u is gone for any linear reader downstream, and nothing else is touched.
 With an orthonormal set U instead of u, the whole subspace is removed.
 <cls>, <eos> and padding positions are left alone. Control: the same operation
-along a random unit direction.
+along a random unit direction. `orthogonal_remainder` splits one direction into
+what it shares with another and the unit remainder, so the remainder alone can
+be removed.
 """
 
 from __future__ import annotations
@@ -74,3 +76,19 @@ def attach(model, directions: dict[int, tuple[np.ndarray, np.ndarray]], ctx: Abl
 def random_unit(width: int, seed: int) -> np.ndarray:
     r = np.random.default_rng(seed).normal(size=width)
     return (r / np.linalg.norm(r)).astype(np.float32)
+
+
+def orthogonal_remainder(v: np.ndarray, w: np.ndarray) -> np.ndarray:
+    """Unit vector along the part of v that lies outside the direction w:
+    (v - (v . w_hat) w_hat) / |...|, so that v_hat = cos(v, w) w_hat + sin(v, w) r.
+    Used to split a direction into what it shares with another and what it adds,
+    e.g. the probe direction minus its class-mean component. Raises if v and w
+    are (nearly) parallel."""
+    v = np.asarray(v, dtype=np.float64)
+    w_hat = np.asarray(w, dtype=np.float64)
+    w_hat = w_hat / np.linalg.norm(w_hat)
+    r = v - (v @ w_hat) * w_hat
+    n = np.linalg.norm(r)
+    if n < 1e-6 * np.linalg.norm(v):
+        raise ValueError("v is parallel to w: no remainder")
+    return (r / n).astype(np.float32)

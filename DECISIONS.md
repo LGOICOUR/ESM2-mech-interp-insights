@@ -204,3 +204,132 @@ barely figures in the model's predictions. Luis has not reviewed this.
 - **Not done, by choice or scope:** ESM-2 650M; family-grouped folds; exact
   single-residue PLL; cumulative multi-layer erasure with refit directions; a
   review of any of this by Luis.
+
+## 2026-10-28 — Follow-up: is what the probe reads *beyond* the class-mean direction used? Pre-registered (Claude, before the run)
+
+Luis asked, after the walk-through, whether probe-monitor-control's finding
+(the probe reads a line the model's output does not use) translates here. The
+single-direction rows cannot say: the probe direction and the class-mean
+direction overlap (cosine 0.66 helix, 0.61 strand), so removing the probe
+direction also removes 44% of the class-mean coordinate. Split each direction
+into what it shares with the other and the unit remainder orthogonal to it:
+
+    probe_c = 0.66 dm_c + 0.75 probe_c_perp        dm_c = 0.66 probe_c + 0.75 dm_c_perp
+
+(`orthogonal_remainder` in `src/esm2_probe/ablate.py`; new kinds in
+`scripts/p4_ablate.py`). Removing `probe_c_perp` alone removes exactly the part
+of the probe's direction that the class-mean direction does not contain;
+`dm_c_perp` is the reverse split, added by Claude for symmetry (Luis asked for
+the first). Run: kinds probe_H_perp, probe_E_perp, random, dm_H_perp, dm_E_perp
+at scopes single (29) and band (26–30), everything else as in the main run,
+written to `results/p4/esm2_t30_150M_perp/` so the main table stays as it is.
+
+Predictions, confidence in brackets:
+
+1. **The probe's remainder is close to inert.** probe_H_perp at 29: helix ΔPLL
+   between −0.004 and 0, and no dissociation (|helix − strand| < 0.003); at
+   26–30 helix between −0.010 and 0. The same for probe_E_perp on strand.
+   [65%] If so, the part of the probe's direction the model uses is its overlap
+   with the class-mean direction, which is the probe-monitor-control result in
+   ESM-2 form: what the probe reads beyond the class-mean geometry is not read
+   by the model. Alternative: the remainder carries a specific effect of
+   ≥ 0.005 nats at 29, meaning the model reads a second line inside the probe
+   direction. [35%]
+2. **The class-mean remainder carries most of the class-mean effect.**
+   dm_H_perp at 29: helix between −0.030 and −0.012, strand within [−0.008, 0]
+   (specific). [65%] dm_E_perp: unspecific like dm_E, every class between
+   −0.015 and −0.045. [60%]
+3. **Decodability.** Refit at 29 after probe_H_perp or probe_E_perp ≥ 0.79
+   (the remainder is orthogonal to its own class's mean-difference direction, so
+   that class's means are not equalized) [70%]; after dm_H_perp 0.70–0.78 [60%].
+   The original probe loses its own axis either way: helix F1 < 0.5 after
+   probe_H_perp, since 56% of the probe's squared weight norm lies along it
+   [70%].
+4. **Random control null**, as before. [90%]
+
+Arithmetic behind 1 and 2: if the model's sensitivity within the plane of the
+two directions were along the class-mean direction alone, removing a unit
+direction u would cost about cos²(u, dm) of the class-mean effect: probe_H
+0.44 × 0.031 = 0.014 (observed 0.011), probe_H_perp 0, dm_H_perp 0.56 × 0.031
+= 0.017. A 12-chain smoke run of three conditions will run after this entry to
+check the code, before the full run; this entry is not edited afterwards.
+
+## 2026-10-28 — The remainder follow-up ran (Claude): predictions against the table
+
+Ten conditions, 548 chains, 26 min on the Mac GPU; baseline identical to the
+main run (PLL −1.958, top-1 39.2%). Table in
+`results/p4/esm2_t30_150M_perp/summary.md`. At layer 29 probe_H_perp has
+cosine 0.75 with probe_H and 0 with dm_H, probe_E_perp 0.79 with probe_E
+(orthogonality asserted in-script at every fold and layer).
+
+1. **The probe's remainder is close to inert: held for helix; held in kind,
+   missed in size, for strand.** probe_H_perp at 29: helix −0.002 [−0.003,
+   −0.002], strand −0.003, coil −0.001 (random −0.000); at 26–30 helix −0.009,
+   strand −0.009, coil −0.004. No dissociation anywhere. probe_E_perp at 29:
+   strand −0.008, outside the predicted −0.004 to 0, but helix −0.008 and coil
+   −0.009 as well, so no strand specificity; at 26–30 strand −0.017, helix
+   −0.018, coil −0.033. The alternative (a class-specific remainder effect
+   ≥ 0.005) occurred for neither class. What the probe reads beyond the
+   class-mean direction is not read by the model, for either class.
+2. **The class-mean remainder carries most of the class-mean effect: held for
+   specificity, missed in size.** dm_H_perp at 29: helix −0.010 [−0.011,
+   −0.008], strand −0.003, coil −0.006 (predicted −0.012 to −0.030); at 26–30
+   helix −0.032, strand −0.012, coil −0.010 (dm_H itself −0.072 / −0.018 /
+   −0.018). The remainder carries a third of the single-layer helix effect and
+   44% of the band effect, not most of it. dm_E_perp: unspecific as predicted,
+   −0.042 / −0.034 / −0.037 at 29; at 26–30 −0.195 / −0.118 / −0.220, *larger*
+   than dm_E itself (−0.154 / −0.111 / −0.161).
+3. **Decodability: half right.** Refit at 29 after probe_H_perp 0.79 [0.79,
+   0.80] (held); after probe_E_perp 0.78 (missed by 0.01); after dm_H_perp
+   0.81, baseline, not the predicted 0.70–0.78: removing 56% of the helix
+   mean-gap variance leaves helix linearly separable from the rest. The
+   original probe did not lose its axis either: 0.72 after probe_H_perp (helix
+   F1 0.76, predicted < 0.5) and 0.62 after probe_E_perp.
+4. **Random control null: held.** −0.000 at 29, −0.002 at 26–30; refit 0.81.
+
+**Effects are sub-additive.** probe_H and dm_H_perp are orthogonal and span
+the plane that contains dm_H; removing either costs helix residues about a
+third of what removing dm_H costs (−0.011 and −0.010 against −0.031). The
+model's dependence on the helix class-mean coordinate is super-linear in the
+fraction of it removed: partial removals cost less than their share.
+
+**Post-hoc check, `scripts/check_variance.py`** (not pre-registered; run after
+the table, to read the unspecific effects). RMS of the removed component on
+held-out residues as a share of the layer-29 variance, and the class-mean gap
+along the direction in within-class standard deviations (d'), directions fit on
+the training folds as in P4:
+
+| direction | share of variance | d' helix vs rest | d' strand vs rest | ΔPLL at 29, targeted class |
+|---|---|---|---|---|
+| random | 0.0018 | 0.00 | +0.01 | −0.000 |
+| probe_H | 0.0049 | +2.68 | −1.51 | −0.011 |
+| probe_H_perp | 0.0054 | −0.01 | −0.91 | −0.002 |
+| dm_H_perp | 0.0169 | +1.15 | +0.06 | −0.010 |
+| dm_H | 0.0164 | +1.75 | −0.43 | −0.031 |
+| probe_E | 0.0044 | −1.47 | +2.36 | −0.009 |
+| probe_E_perp | 0.0143 | −0.51 | −0.03 | −0.008, every class |
+| dm_E_perp | 0.0449 | +0.01 | +0.77 | −0.034, every class |
+| dm_E | 0.0350 | −0.25 | +1.13 | −0.040, every class |
+
+Three readings. (i) The probe's direction is the sharper separator (d' 2.7 vs
+1.75) with a third of the class-mean direction's variance: a discriminative
+probe points toward a low-variance direction where the classes separate
+cleanly, and the model's output is insensitive to that direction. The helix
+remainder carries three times a random direction's variance and a real
+anti-strand gap (d' −0.9), and the output does not care. (ii) The unspecific
+effects track variance, not class signal: the strand class-mean direction and
+its remainder are the two highest-variance single directions (3.5% and 4.5%)
+and the two most damaging, equally for every class; the strand probe's
+remainder carries 1.4% and costs 0.008 everywhere. The random control, at
+0.18%, is not a variance-matched control; a variance-matched random control
+would be the right one and was not run. (iii) The helix effects follow the
+helix class-mean gap: no gap, no effect (probe_H_perp); partial gap, partial
+effect (probe_H, dm_H_perp); full gap, full effect (dm_H).
+
+**Answer to Luis's question.** probe-monitor-control's finding translates in
+the only form it can take here: what the probe reads beyond the class-mean
+direction is not used by the model, for either class. The difference from the
+Qwen monitor is the overlap. There the probe's line and the model's line were
+nearly orthogonal, so removing the probe's line did nothing; here they share
+0.6 of their direction, so removing the probe's line costs the model exactly
+the part it shares. Luis has not reviewed this.

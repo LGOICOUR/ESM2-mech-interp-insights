@@ -4,10 +4,11 @@ hook attachment, on tensors and a stand-in model."""
 from types import SimpleNamespace
 
 import numpy as np
+import pytest
 import torch
 from torch import nn
 
-from esm2_probe.ablate import AblationContext, attach, orthonormal_rows, project_out, random_unit
+from esm2_probe.ablate import AblationContext, attach, orthogonal_remainder, orthonormal_rows, project_out, random_unit
 
 
 def _setup(seed=0, B=2, T=7, W=8):
@@ -93,3 +94,23 @@ def test_orthonormal_rows_drops_dependent_directions():
     assert U.shape == (2, 4)
     assert np.allclose(U @ U.T, np.eye(2), atol=1e-6)
     assert np.allclose(np.abs(U[:, 2:]).sum(), 0, atol=1e-6)  # span is the first two axes
+
+
+def test_orthogonal_remainder_is_the_unit_part_of_v_outside_w():
+    rng = np.random.default_rng(0)
+    v, w = rng.normal(size=16), rng.normal(size=16)
+    r = orthogonal_remainder(v, w)
+    vh, wh = v / np.linalg.norm(v), w / np.linalg.norm(w)
+    assert abs(np.linalg.norm(r) - 1) < 1e-5
+    assert abs(r @ wh) < 1e-5                      # orthogonal to w
+    assert r @ vh > 0                              # on v's side
+    c = vh @ wh
+    assert np.allclose(vh, c * wh + np.sqrt(1 - c**2) * r, atol=1e-5)   # v_hat = cos w_hat + sin r
+    U = orthonormal_rows(np.stack([v, w]))
+    assert np.allclose(r, U.T @ (U @ r), atol=1e-5)  # lies in the plane of v and w
+    # removing r from a vector leaves its coordinate along w untouched
+    h = rng.normal(size=16)
+    h2 = h - (h @ r) * r
+    assert abs(h2 @ wh - h @ wh) < 1e-6
+    with pytest.raises(ValueError):
+        orthogonal_remainder(w, -2.0 * w)

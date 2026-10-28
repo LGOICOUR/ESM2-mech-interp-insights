@@ -12,14 +12,20 @@ held-out chains (residue positions only; see src/esm2_probe/ablate.py). Read-out
 
 Directions: probe_H / probe_E (the logistic probe's class weight vector),
 dm_H / dm_E (class mean minus the rest), probe_sub / dm_sub (the rank-2 span of
-all three class directions), random (one unit direction) and random_sub (two),
-the controls. Scopes: single = the headline layer L*; band = L* +/- 3; mid = layers 12-18.
+all three class directions), probe_H_perp / probe_E_perp (the unit remainder of
+the probe direction once its component along the class-mean direction is
+removed: what the probe reads that the class-mean direction does not contain),
+dm_H_perp / dm_E_perp (the reverse split), random (one unit direction) and
+random_sub (two), the controls. Scopes: single = the headline layer L*;
+band = L* +/- 3; mid = layers 12-18.
 
-Outputs in results/p4/<recording>/: metrics.json, summary.md, per_residue.npz
+Outputs in results/p4/<recording>[_limitN][_<tag>]/: metrics.json, summary.md, per_residue.npz
 
 Usage:
     uv run python scripts/p4_ablate.py
     uv run python scripts/p4_ablate.py --limit 12 --kinds probe_H random --scopes single   # quick check
+    uv run python scripts/p4_ablate.py --kinds probe_H_perp probe_E_perp random dm_H_perp dm_E_perp \
+        --scopes single band --tag perp                                                     # the remainder follow-up
 """
 
 from __future__ import annotations
@@ -36,13 +42,14 @@ import torch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from esm2_probe.ablate import AblationContext, attach, orthonormal_rows, random_unit  # noqa: E402
+from esm2_probe.ablate import AblationContext, attach, orthogonal_remainder, orthonormal_rows, random_unit  # noqa: E402
 from esm2_probe.data import CLASSES, read_jsonl  # noqa: E402
 from esm2_probe.probe import (cv_probe, diff_in_means, fit_lr, grouped_bootstrap_ci, grouped_bootstrap_mean,  # noqa: E402
                               grouped_folds, metrics, probe_direction, subsample)
 from esm2_probe.reader import Recorder, encode, load_model, masked_readout  # noqa: E402
 
-KINDS = ["probe_H", "probe_E", "dm_H", "dm_E", "probe_sub", "dm_sub", "random", "random_sub"]
+KINDS = ["probe_H", "probe_E", "dm_H", "dm_E", "probe_sub", "dm_sub",
+         "probe_H_perp", "probe_E_perp", "dm_H_perp", "dm_E_perp", "random", "random_sub"]
 
 
 def scopes_for(L_star: int, n_layers: int) -> dict[str, list[int]]:
@@ -71,6 +78,9 @@ def fit_directions(acts, y, g, folds, layers, n_train, seed, C_of):
             # class-mean deviations), so their span is the plane of the H and E directions
             cache[f][L] = {"mu": mu, "probe_H": pw[0], "probe_E": pw[1], "dm_H": dm[0], "dm_E": dm[1],
                            "probe_sub": orthonormal_rows(pw[:2]), "dm_sub": orthonormal_rows(dm[:2]),
+                           # what each class direction adds beyond the other kind's direction for the same class
+                           "probe_H_perp": orthogonal_remainder(pw[0], dm[0]), "probe_E_perp": orthogonal_remainder(pw[1], dm[1]),
+                           "dm_H_perp": orthogonal_remainder(dm[0], pw[0]), "dm_E_perp": orthogonal_remainder(dm[1], pw[1]),
                            "random": random_unit(W, seed=1000 * f + L),
                            "random_sub": orthonormal_rows(np.stack([random_unit(W, 7000 + 1000 * f + L), random_unit(W, 8000 + 1000 * f + L)]))}
     return cache, probes
@@ -101,6 +111,8 @@ def main() -> None:
     ap.add_argument("--n-boot", type=int, default=1000)
     ap.add_argument("--limit", type=int, default=None, help="first N chains only (check runs)")
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--tag", default=None,
+                    help="suffix for the output folder, e.g. 'perp' -> results/p4/<recording>_perp (a follow-up run that leaves the main run's files intact)")
     args = ap.parse_args()
 
     src = ROOT / "results" / "p2" / args.recording
@@ -127,7 +139,8 @@ def main() -> None:
     rows = np.concatenate([np.arange(starts[i], starts[i + 1]) for i in chain_ids])
     y, g, folds = y_all[rows], g_all[rows], folds_all[rows]
     lab_pos = {i: tbl["position"][starts[i]:starts[i + 1]] for i in chain_ids}
-    out_dir = ROOT / "results" / "p4" / (args.recording + (f"_limit{args.limit}" if args.limit else ""))
+    out_dir = ROOT / "results" / "p4" / (args.recording + (f"_limit{args.limit}" if args.limit else "")
+                                         + (f"_{args.tag}" if args.tag else ""))
     out_dir.mkdir(parents=True, exist_ok=True)
     t0 = time.time()
 
@@ -135,6 +148,13 @@ def main() -> None:
     cache, probes = fit_directions(acts, y_all, g_all, folds_all, cache_layers, args.n_train, args.seed, C_of)
     ranks = {k: cache[0][L_star][k].shape[0] for k in ("probe_sub", "dm_sub", "random_sub")}
     cos = {f"cos(probe_{c}, dm_{c}) at L*": float(cache[0][L_star][f"probe_{c}"] @ cache[0][L_star][f"dm_{c}"]) for c in ("H", "E")}
+    cos.update({f"cos(probe_{c}_perp, probe_{c}) at L*": float(cache[0][L_star][f"probe_{c}_perp"] @ cache[0][L_star][f"probe_{c}"])
+                for c in ("H", "E")})
+    for f in cache:  # each remainder is orthogonal to the direction it was split from, in every fold and layer
+        for L in cache_layers:
+            for c in ("H", "E"):
+                assert abs(float(cache[f][L][f"probe_{c}_perp"] @ cache[f][L][f"dm_{c}"])) < 1e-4
+                assert abs(float(cache[f][L][f"dm_{c}_perp"] @ cache[f][L][f"probe_{c}"])) < 1e-4
     print(f"L* = {L_star}; scopes {scopes}; subspace ranks {ranks}; {cos}; directions fit in {time.time() - t0:.0f}s", flush=True)
 
     tok, model, device = load_model()
