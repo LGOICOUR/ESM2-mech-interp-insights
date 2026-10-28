@@ -84,8 +84,9 @@ Full table with every CI, top-1 change rates and the original-probe column:
   probe's direction** for the same class and scope (cosine between the two
   0.66 for helix, 0.61 for strand), the same ordering as in probe-monitor-control
   and Arditi et al. The helix one is specific; the strand one is not (over
-  layers 26–30 it costs coil −0.16, helix −0.15, strand −0.11), so part of its
-  extra leverage is that it carries something the model uses everywhere.
+  layers 26–30 it costs coil −0.16, helix −0.15, strand −0.11): it is largely
+  the stream's top principal component (cosine 0.60), and a random direction
+  of the same size and spectrum does 60% of its damage (follow-up below).
 - **A line, not the concept.** After any single direction is removed, a probe
   refit on the ablated activations still decodes at 0.68–0.77 (baseline 0.81),
   and even after the probe's whole rank-2 plane is gone, 0.71–0.73. The
@@ -143,8 +144,38 @@ remainder of the class-mean helix direction, by contrast, still carries helix
 signal (d' 1.15) and still costs helix residues specifically. The strand
 class-mean direction and its remainder are the two highest-variance single
 directions (3.5% and 4.5% of the layer's variance) and the most damaging,
-equally for every class. The random control, at 0.18% of the variance, is not
-variance-matched; a variance-matched control was not run.
+equally for every class.
+
+**Is that damage just the size of the perturbation?** The random control
+carries 0.18% of the variance, so a second control draws random directions
+tilted toward the layer's high-variance axes until they carry the same share
+as a class-mean direction, per fold and layer (`variance_matched_random`;
+pre-registered in `DECISIONS.md`; table with CIs in
+[`results/p4/esm2_t30_150M_vm/summary.md`](results/p4/esm2_t30_150M_vm/summary.md)).
+Layer 29's top eigenvector holds 7.3% of the variance, and the strand
+class-mean direction is largely that axis (cosine 0.60, its remainder 0.71);
+the matched randoms reproduce the loading (0.61, 0.71).
+
+| random direction matched in variance to | layers | Δ log-lik., helix residues | strand residues | coil residues | refit probe at 29 |
+|---|---|---|---|---|---|
+| class-mean helix direction (1.6%) | 29 | −0.009 | −0.007 | −0.008 | 0.80 |
+| class-mean strand direction (3.5%) | 29 | −0.022 | −0.018 | −0.024 | 0.80 |
+| strand remainder (4.5%) | 29 | −0.036 | −0.036 | −0.044 | 0.80 |
+| class-mean helix direction (1.6%) | 26–30 | −0.046 | −0.045 | −0.038 | 0.79 |
+| class-mean strand direction (3.5%) | 26–30 | −0.083 | −0.079 | −0.099 | 0.80 |
+| strand remainder (4.5%) | 26–30 | −0.133 | −0.104 | −0.141 | 0.80 |
+
+Size explains the unspecific effects and not the specific ones. A random
+direction of the strand remainder's size and spectrum does the same damage at
+layer 29 (class-averaged ratio 1.03; 14–16% of top-1 predictions change in
+both) and 70% of it over five layers; one of the strand class-mean direction's
+size does 60% of its damage at both scopes, so about 40% of that direction's
+effect is not size. One of the helix class-mean direction's size costs helix
+residues a third of what the helix direction costs (−0.009 vs −0.031) while
+costing the other classes as much or, over five layers, more (−0.045 vs
+−0.018): the helix effect is signal. Even the class pattern of the unspecific
+damage follows the geometry: over five layers both the strand class-mean
+direction and its matched random hit strand residues least and coil most.
 
 ## Caveats, what did not work first
 
@@ -219,13 +250,14 @@ variance-matched; a variance-matched control was not run.
 
 ```bash
 uv sync
-uv run pytest -q                              # 27 offline tests, no network, ~6 s
+uv run pytest -q                              # 28 offline tests, no network, ~6 s
 uv run python scripts/p1_data.py              # downloads two label files from Hugging Face (~0.4 MB)
 uv run python scripts/p2_read.py              # downloads ESM-2 150M (~0.6 GB); records 4.5 GB of activations in ~25 s on an M4 Pro
 uv run python scripts/p3_probe.py && uv run python scripts/p3_figure.py     # ~1 min
 uv run python scripts/p4_ablate.py && uv run python scripts/p4_figure.py    # ~1 h for 24 conditions (3 scopes × 8 directions)
 uv run python scripts/p4_ablate.py --kinds probe_H_perp probe_E_perp random dm_H_perp dm_E_perp --scopes single band --tag perp   # ~26 min; the remainder follow-up, into results/p4/esm2_t30_150M_perp/
-uv run python scripts/check_variance.py       # variance share and class gap of every direction at layer 29, ~1 min
+uv run python scripts/p4_ablate.py --kinds random_vm_dmH random_vm_dmE random_vm_dmEperp --scopes single band --tag vm   # ~16 min; variance-matched random controls, into results/p4/esm2_t30_150M_vm/
+uv run python scripts/check_variance.py --out esm2_t30_150M_vm   # variance share, class gap and top-eigenvector loading of every direction at layer 29, ~1 min
 ```
 
 Every script prints its own checks and refuses to continue if one fails
@@ -258,7 +290,7 @@ scripts/          p1_data -> p2_read -> p3_probe (+ p3_figure) -> p4_ablate (+ p
 tests/            offline tests on synthetic data and a fake model (no network)
 results/          p1 proteins + config; p2 index + summary (activations are not committed);
                   p3 metrics, layer curves, figure; p4 metrics, per-residue read-outs, ablation table, figure;
-                  p4 <recording>_perp: the remainder follow-up and its variance check
+                  p4 <recording>_perp and _vm: the remainder follow-up and the variance-matched controls, with the variance check
 DECISIONS.md      dated log of every choice, with the ablation's expectations written before it ran
 ```
 
@@ -279,7 +311,9 @@ ground-truth labels, the baselines and controls that sit beside every number,
 and the scripts' own assertions. The remainder follow-up (the last block of
 the headline) was added the same day at Luis's request, after he was walked
 through the first result and asked whether the probe's own information is
-used; the agent pre-registered it, ran it and wrote it up.
+used; the agent pre-registered it, ran it and wrote it up, and then did the
+same for the variance-matched control that the first follow-up named as
+missing, again at Luis's request.
 
 **Luis has not yet reviewed the result.** Until he says otherwise, treat the
 numbers as an agent's unreviewed run of an honest pipeline: reproducible from

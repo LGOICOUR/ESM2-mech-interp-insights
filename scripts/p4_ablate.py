@@ -16,8 +16,11 @@ all three class directions), probe_H_perp / probe_E_perp (the unit remainder of
 the probe direction once its component along the class-mean direction is
 removed: what the probe reads that the class-mean direction does not contain),
 dm_H_perp / dm_E_perp (the reverse split), random (one unit direction) and
-random_sub (two), the controls. Scopes: single = the headline layer L*;
-band = L* +/- 3; mid = layers 12-18.
+random_sub (two), the controls, and random_vm_dmH / random_vm_dmE /
+random_vm_dmEperp, random directions tilted toward the high-variance axes until
+they carry the same share of the layer's variance as dm_H, dm_E or dm_E_perp
+(the control for a fitted direction's size). Scopes: single = the headline
+layer L*; band = L* +/- 3; mid = layers 12-18.
 
 Outputs in results/p4/<recording>[_limitN][_<tag>]/: metrics.json, summary.md, per_residue.npz
 
@@ -26,6 +29,8 @@ Usage:
     uv run python scripts/p4_ablate.py --limit 12 --kinds probe_H random --scopes single   # quick check
     uv run python scripts/p4_ablate.py --kinds probe_H_perp probe_E_perp random dm_H_perp dm_E_perp \
         --scopes single band --tag perp                                                     # the remainder follow-up
+    uv run python scripts/p4_ablate.py --kinds random_vm_dmH random_vm_dmE random_vm_dmEperp \
+        --scopes single band --tag vm                                                       # variance-matched controls
 """
 
 from __future__ import annotations
@@ -42,14 +47,18 @@ import torch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from esm2_probe.ablate import AblationContext, attach, orthogonal_remainder, orthonormal_rows, random_unit  # noqa: E402
+from esm2_probe.ablate import (AblationContext, attach, orthogonal_remainder, orthonormal_rows, random_unit,  # noqa: E402
+                               variance_matched_random, variance_share)
 from esm2_probe.data import CLASSES, read_jsonl  # noqa: E402
 from esm2_probe.probe import (cv_probe, diff_in_means, fit_lr, grouped_bootstrap_ci, grouped_bootstrap_mean,  # noqa: E402
                               grouped_folds, metrics, probe_direction, subsample)
 from esm2_probe.reader import Recorder, encode, load_model, masked_readout  # noqa: E402
 
 KINDS = ["probe_H", "probe_E", "dm_H", "dm_E", "probe_sub", "dm_sub",
-         "probe_H_perp", "probe_E_perp", "dm_H_perp", "dm_E_perp", "random", "random_sub"]
+         "probe_H_perp", "probe_E_perp", "dm_H_perp", "dm_E_perp", "random", "random_sub",
+         "random_vm_dmH", "random_vm_dmE", "random_vm_dmEperp"]
+# random directions whose variance share matches a fitted direction's, per fold and layer
+VARIANCE_MATCHED = {"random_vm_dmH": "dm_H", "random_vm_dmE": "dm_E", "random_vm_dmEperp": "dm_E_perp"}
 
 
 def scopes_for(L_star: int, n_layers: int) -> dict[str, list[int]]:
@@ -83,6 +92,16 @@ def fit_directions(acts, y, g, folds, layers, n_train, seed, C_of):
                            "dm_H_perp": orthogonal_remainder(dm[0], pw[0]), "dm_E_perp": orthogonal_remainder(dm[1], pw[1]),
                            "random": random_unit(W, seed=1000 * f + L),
                            "random_sub": orthonormal_rows(np.stack([random_unit(W, 7000 + 1000 * f + L), random_unit(W, 8000 + 1000 * f + L)]))}
+            # variance-matched random directions: same share of this layer's variance as the reference direction
+            cov = np.cov(X.T.astype(np.float64), bias=True)
+            lam, V = np.linalg.eigh(cov)
+            info = {}
+            for i, (k, ref) in enumerate(VARIANCE_MATCHED.items()):
+                target = variance_share(cache[f][L][ref], cov)
+                cache[f][L][k], info[k] = variance_matched_random(lam, V, target, seed=9000 + 1000 * i + 100 * f + L)
+                info[k]["matched_to"] = ref
+                info[k]["ref_cos_top_eigvec"] = float(abs(np.asarray(cache[f][L][ref], dtype=np.float64) @ V[:, -1]))
+            cache[f][L]["info"] = info
     return cache, probes
 
 
@@ -155,7 +174,12 @@ def main() -> None:
             for c in ("H", "E"):
                 assert abs(float(cache[f][L][f"probe_{c}_perp"] @ cache[f][L][f"dm_{c}"])) < 1e-4
                 assert abs(float(cache[f][L][f"dm_{c}_perp"] @ cache[f][L][f"probe_{c}"])) < 1e-4
+    vm_info = {str(f): cache[f][L_star]["info"] for f in cache}
+    vm_line = "; ".join(f"{k}: share {v['share']:.4f} (target {v['target_share']:.4f}), tilt {v['tilt_p']:.1f}, "
+                        f"cos top eigvec {v['cos_top_eigvec']:.2f} (ref {v['ref_cos_top_eigvec']:.2f}), PR {v['participation_ratio']:.1f}"
+                        for k, v in vm_info["0"].items())
     print(f"L* = {L_star}; scopes {scopes}; subspace ranks {ranks}; {cos}; directions fit in {time.time() - t0:.0f}s", flush=True)
+    print(f"variance-matched random directions at L*, fold 0: {vm_line}", flush=True)
 
     tok, model, device = load_model()
     ctx = AblationContext()
@@ -216,6 +240,7 @@ def main() -> None:
 
     results = {"recording": args.recording, "L_star": L_star, "scopes": scopes, "record_layers": record_layers, "k": args.k,
                "n_chains": len(chain_ids), "n_residues": int(len(y)), "subspace_ranks": ranks, "cosines_at_L_star": cos,
+               "variance_matched_at_L_star": vm_info,
                "baseline": {"pll_by_class": by_class(logp0, y, g, args.n_boot),
                             "top1_acc_by_class": by_class((top10 == true_tok).astype(float), y, g, args.n_boot),
                             "decodability": decodability(A0)},
@@ -290,6 +315,7 @@ def main() -> None:
     for name, r in results["conditions"].items():
         lines.append(f"| {name} | {dec(r, L_star)} | {dec(r, n_layers)} |")
     lines += ["", f"- subspace ranks: {ranks}; {cos}",
+              f"- variance-matched random directions at L*, fold 0: {vm_line}",
               f"- projection check: largest |removed coordinate| left at L* across conditions = "
               f"{max(v['max_abs_removed_coordinate_at_L_star'] or 0 for v in results['conditions'].values()):.4f}",
               f"- {results['seconds']:.0f}s on {device}"]

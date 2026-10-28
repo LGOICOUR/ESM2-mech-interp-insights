@@ -1,0 +1,140 @@
+{
+ "layer": 29,
+ "n_residues": 113279,
+ "total_variance": 31383.64453125,
+ "width": 640,
+ "top_eigenvalue_shares": [
+  0.0731795633840914,
+  0.0337178720700445,
+  0.02202525231819501,
+  0.01705256664630177,
+  0.015394605983051484,
+  0.014040059195894596,
+  0.013258668048515925,
+  0.012573634498425947,
+  0.012023026923445817,
+  0.011546554562508596
+ ],
+ "per_kind": {
+  "probe_H": {
+   "rms_removed": 12.365917841885642,
+   "share_of_total_variance": 0.004872471835449222,
+   "dprime_H_vs_rest": 2.6755954742431642,
+   "dprime_E_vs_rest": -1.5114708423614502,
+   "cos_top_eigvec": 0.003289706410701986,
+   "participation_ratio": 66.54491574210033
+  },
+  "probe_E": {
+   "rms_removed": 11.788493892641076,
+   "share_of_total_variance": 0.0044280576820343205,
+   "dprime_H_vs_rest": -1.4709115743637085,
+   "dprime_E_vs_rest": 2.3597983837127687,
+   "cos_top_eigvec": 0.05584559353565853,
+   "participation_ratio": 65.41635644178787
+  },
+  "dm_H": {
+   "rms_removed": 22.68737651696767,
+   "share_of_total_variance": 0.01640080560784236,
+   "dprime_H_vs_rest": 1.7492111206054688,
+   "dprime_E_vs_rest": -0.431075793504715,
+   "cos_top_eigvec": 0.14877139862361835,
+   "participation_ratio": 6.6780342129323005
+  },
+  "dm_E": {
+   "rms_removed": 33.15965978579055,
+   "share_of_total_variance": 0.03503618058171971,
+   "dprime_H_vs_rest": -0.2453055426478386,
+   "dprime_E_vs_rest": 1.1262749433517456,
+   "cos_top_eigvec": 0.5978753711285073,
+   "participation_ratio": 6.163257766582789
+  },
+  "probe_sub": {
+   "rms_removed": 17.01480247954612,
+   "share_of_total_variance": 0.009224661690572556,
+   "dprime_H_vs_rest": null,
+   "dprime_E_vs_rest": null,
+   "cos_top_eigvec": null,
+   "participation_ratio": null
+  },
+  "dm_sub": {
+   "rms_removed": 42.41268863473009,
+   "share_of_total_variance": 0.05731763101749979,
+   "dprime_H_vs_rest": null,
+   "dprime_E_vs_rest": null,
+   "cos_top_eigvec": null,
+   "participation_ratio": null
+  },
+  "probe_H_perp": {
+   "rms_removed": 13.043428858124429,
+   "share_of_total_variance": 0.005421009539142166,
+   "dprime_H_vs_rest": -0.01042155846953392,
+   "dprime_E_vs_rest": -0.9127277731895447,
+   "cos_top_eigvec": 0.12796207314736568,
+   "participation_ratio": 83.13197529747501
+  },
+  "probe_E_perp": {
+   "rms_removed": 21.196000150105707,
+   "share_of_total_variance": 0.014315431782179536,
+   "dprime_H_vs_rest": -0.5137998402118683,
+   "dprime_E_vs_rest": -0.0266650453209877,
+   "cos_top_eigvec": 0.3907954835830134,
+   "participation_ratio": 34.45827305809974
+  },
+  "dm_H_perp": {
+   "rms_removed": 23.06365451145651,
+   "share_of_total_variance": 0.016949343117054528,
+   "dprime_H_vs_rest": 1.146988832950592,
+   "dprime_E_vs_rest": 0.055997132882475854,
+   "cos_top_eigvec": 0.1962206142633965,
+   "participation_ratio": 5.7513042083692065
+  },
+  "dm_E_perp": {
+   "rms_removed": 37.54816665745396,
+   "share_of_total_variance": 0.0449235530287783,
+   "dprime_H_vs_rest": 0.00624378640204668,
+   "dprime_E_vs_rest": 0.769609808921814,
+   "cos_top_eigvec": 0.7121146258666239,
+   "participation_ratio": 3.4111097030846422
+  },
+  "random": {
+   "rms_removed": 7.573474229298959,
+   "share_of_total_variance": 0.0018276243170146224,
+   "dprime_H_vs_rest": -0.00281125009059906,
+   "dprime_E_vs_rest": 0.008668209752067923,
+   "cos_top_eigvec": 0.06613708665476054,
+   "participation_ratio": 205.09641480342844
+  },
+  "random_sub": {
+   "rms_removed": 9.436866991653748,
+   "share_of_total_variance": 0.0028376072934897293,
+   "dprime_H_vs_rest": null,
+   "dprime_E_vs_rest": null,
+   "cos_top_eigvec": null,
+   "participation_ratio": null
+  },
+  "random_vm_dmH": {
+   "rms_removed": 22.972109129367347,
+   "share_of_total_variance": 0.016815057834538367,
+   "dprime_H_vs_rest": 0.2977626591920853,
+   "dprime_E_vs_rest": 0.045767278596758845,
+   "cos_top_eigvec": 0.3295221925672467,
+   "participation_ratio": 20.66222373702299
+  },
+  "random_vm_dmE": {
+   "rms_removed": 33.01476979192892,
+   "share_of_total_variance": 0.03473067072655405,
+   "dprime_H_vs_rest": -0.07172321490943431,
+   "dprime_E_vs_rest": 0.3265113145112991,
+   "cos_top_eigvec": 0.6091275752775159,
+   "participation_ratio": 5.680039809703894
+  },
+  "random_vm_dmEperp": {
+   "rms_removed": 37.337022798883886,
+   "share_of_total_variance": 0.044419738124941426,
+   "dprime_H_vs_rest": 0.05018246099352837,
+   "dprime_E_vs_rest": -0.017196224257349967,
+   "cos_top_eigvec": 0.7061693067124186,
+   "participation_ratio": 3.2865494792215046
+  }
+ }
+}

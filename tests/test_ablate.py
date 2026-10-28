@@ -8,7 +8,8 @@ import pytest
 import torch
 from torch import nn
 
-from esm2_probe.ablate import AblationContext, attach, orthogonal_remainder, orthonormal_rows, project_out, random_unit
+from esm2_probe.ablate import (AblationContext, attach, orthogonal_remainder, orthonormal_rows, project_out, random_unit,
+                               variance_matched_random, variance_share)
 
 
 def _setup(seed=0, B=2, T=7, W=8):
@@ -114,3 +115,26 @@ def test_orthogonal_remainder_is_the_unit_part_of_v_outside_w():
     assert abs(h2 @ wh - h @ wh) < 1e-6
     with pytest.raises(ValueError):
         orthogonal_remainder(w, -2.0 * w)
+
+
+def test_variance_matched_random_hits_the_target_share_and_is_seeded():
+    rng = np.random.default_rng(0)
+    W = 12
+    lam = np.array([50.0, 8.0, 3.0] + [1.0] * (W - 3))          # top eigenvalue holds 50/70 of the variance
+    Q, _ = np.linalg.qr(rng.normal(size=(W, W)))
+    cov = Q @ np.diag(lam) @ Q.T
+    eigvals, eigvecs = np.linalg.eigh(cov)
+    for target in (0.3, 0.6):
+        u, info = variance_matched_random(eigvals, eigvecs, target, seed=3)
+        assert abs(np.linalg.norm(u) - 1) < 1e-5
+        assert abs(variance_share(u, cov) - target) < 1e-3
+        assert abs(info["share"] - target) < 1e-3 and info["target_share"] == target
+    a, ia = variance_matched_random(eigvals, eigvecs, 0.3, seed=3)
+    b, _ = variance_matched_random(eigvals, eigvecs, 0.3, seed=3)
+    c, _ = variance_matched_random(eigvals, eigvecs, 0.3, seed=4)
+    assert np.array_equal(a, b) and not np.allclose(a, c)         # seeded, and different draws differ
+    _, ib = variance_matched_random(eigvals, eigvecs, 0.6, seed=3)
+    assert ib["tilt_p"] > ia["tilt_p"] and ib["cos_top_eigvec"] > ia["cos_top_eigvec"]   # more share needs more tilt
+    assert 1.0 <= ia["participation_ratio"] <= W
+    with pytest.raises(ValueError):
+        variance_matched_random(eigvals, eigvecs, 0.95, seed=3)   # above the top eigenvalue's share

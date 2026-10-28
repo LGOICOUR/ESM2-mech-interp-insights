@@ -333,3 +333,92 @@ Qwen monitor is the overlap. There the probe's line and the model's line were
 nearly orthogonal, so removing the probe's line did nothing; here they share
 0.6 of their direction, so removing the probe's line costs the model exactly
 the part it shares. Luis has not reviewed this.
+
+## 2026-10-28 — Variance-matched random control: pre-registered (Claude, before the run)
+
+Luis asked for the control the remainder write-up names as missing. The
+random control removes a direction carrying 0.18% of the layer's variance,
+while the class-mean strand direction and its remainder carry 3.5% and 4.5%,
+so their unspecific damage might be the size of the perturbation and nothing
+else. Construction (`variance_matched_random` in `src/esm2_probe/ablate.py`):
+draw a Gaussian direction in the eigenbasis of the training residues'
+covariance and tilt it toward the high-variance axes, c_i = g_i λ_i^{p/2},
+with the tilt p set by bisection so the direction's variance share equals, per
+fold and layer, that of dm_H (≈ 1.6%), dm_E (≈ 3.5%) or dm_E_perp (≈ 4.5%).
+One draw per fold and layer, so a band condition averages over 25 directions.
+Kinds random_vm_dmH, random_vm_dmE, random_vm_dmEperp; scopes single (29) and
+band (26–30); everything else as before; written to
+`results/p4/esm2_t30_150M_vm/`.
+
+Predictions, confidence in brackets:
+
+1. **The matched directions carry no class signal and leave decodability at
+   baseline.** |d'| < 0.3 for helix and strand on held-out residues
+   (`check_variance.py`) [70%]; refit at 29 ≥ 0.80 [85%].
+2. **At dm_H's share (1.6%), the matched random costs every class between
+   −0.002 and −0.012 nats at 29, with no specificity** [65%]: it accounts for
+   dm_H's off-target floor (strand −0.004, coil −0.009) and not for its helix
+   effect (−0.031). dm_H's helix effect is signal, not size.
+3. **At the strand directions' shares (3.5%, 4.5%), the matched random costs a
+   substantial fraction of what dm_E and dm_E_perp cost, unspecifically.**
+   Ratio of the matched random's class-averaged ΔPLL to its reference
+   direction's, at 29: between 0.3 and 1.2 [55%]; below 0.3, meaning the
+   class-mean strand directions carry something the model uses beyond their
+   size [30%]; above 1.2, meaning a random direction of that size is more
+   damaging than the class-mean one [15%]. Same ordering at 26–30 [60%].
+4. **Effects scale with share**: for every class, the 4.5% match costs more
+   than the 3.5% match, which costs more than the 1.6% match [75%].
+
+Caveat known in advance: a direction tilted toward the high-variance axes is
+random only within those axes. If a few outlier dimensions hold most of the
+variance, the matched directions will load on them, and the control then
+tests "a direction of this size along the stream's dominant axes" rather than
+"any direction of this size". The cosine with the top eigenvector and the
+participation ratio are recorded for every single direction, the class-mean
+ones included, so the comparison can be judged. A 12-chain smoke run of one
+condition will run after this entry to check the code, before the full run;
+this entry is not edited afterwards.
+
+## 2026-10-28 — Variance-matched random control ran (Claude): predictions against the table
+
+Six conditions, 548 chains, 16 min; baseline identical again (PLL −1.958,
+top-1 39.2%). Table in `results/p4/esm2_t30_150M_vm/summary.md`; held-out
+check in its `variance_check.json`: shares 1.68 / 3.47 / 4.44% against the
+references' 1.64 / 3.50 / 4.49%. Layer 29's spectrum is not dominated by one
+axis (top eigenvalue 7.3% of the variance, then 3.4, 2.2, 1.7, 1.5%), but the
+strand class-mean direction is largely that top axis (cosine 0.60; its
+remainder 0.71), and the two matched randoms for it reproduce the loading
+(0.61, 0.71) and the effective number of axes (5.7 vs 6.2; 3.3 vs 3.4). The
+match for dm_H is cruder: its random loads more on the top axis (0.33 vs 0.15)
+over more axes (21 vs 7).
+
+1. **No class signal, decodability at baseline: held for decodability (refit
+   0.80 at 29 for all three), borderline for signal.** d' 0.30 (helix) and
+   0.33 (strand) for the two lower matches against the < 0.3 predicted: a
+   direction tilted toward the top axis inherits a little of that axis's
+   strand correlation.
+2. **At dm_H's share, a small unspecific cost: held.** −0.009 / −0.007 /
+   −0.008 at 29, the size of dm_H's off-target floor (−0.004 / −0.009) and
+   less than a third of its helix effect (−0.031). At 26–30 the matched random
+   costs helix −0.046 against dm_H's −0.072, and the other two classes −0.045
+   / −0.038 against dm_H's −0.018 / −0.018: a random direction of dm_H's size
+   does more general damage and less helix damage than dm_H. The helix effect
+   is signal.
+3. **At the strand directions' shares, a substantial fraction: held, middle
+   option.** Ratio of the matched random's class-averaged ΔPLL to its
+   reference's: dm_E 0.59 at 29 and 0.61 at 26–30; dm_E_perp 1.03 at 29 and
+   0.71 at 26–30. The strand remainder's damage is its size: a random
+   direction of the same share and the same loading on the top axis does the
+   same at 29 (14–16% of top-1 predictions change in both). The strand
+   class-mean direction keeps about 40% of its damage beyond size; that part
+   is not explained.
+4. **Effects scale with share: held** for every class at both scopes (4.5% >
+   3.5% > 1.6%).
+
+Two readings. The class pattern of the unspecific damage is itself a property
+of the variance geometry, not of strand meaning: at 26–30 both dm_E and its
+matched random hit strand residues least and coil most. And removing the
+strand class-mean direction is, to first order, removing the stream's dominant
+axis, which is why it hurts everything. The specific effects (helix for dm_H
+and its remainder; the double dissociation of the probe directions) are the
+part of the table that size does not explain. Luis has not reviewed this.
