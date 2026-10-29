@@ -73,7 +73,9 @@ def main() -> None:
         ax.set_axisbelow(True)
         for s in ("top", "right"):
             ax.spines[s].set_visible(False)
-    axes[0].legend(loc="upper left", frameon=False, fontsize=7.5, labelcolor=INK)
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="lower center", ncol=3, frameon=False, fontsize=8, labelcolor=INK,
+               bbox_to_anchor=(0.5, 0.0), handlelength=2.4, columnspacing=1.8)
     ax = axes[2]
     ax.set_facecolor(SURFACE)
     for k in kinds:
@@ -98,7 +100,7 @@ def main() -> None:
     fig.suptitle(f"ESM-2 150M: adding a secondary-structure direction to {tname} residues at layer {m['L_star']} during the forward pass "
                  f"({m['n_chains']} held-out chains, {m['n_target_residues']:,} {tname} residues; bars = 95% CI over chains)",
                  color=INK, fontsize=9.5, x=0.01, ha="left")
-    fig.subplots_adjust(left=0.06, right=0.99, top=0.86, bottom=0.15, wspace=0.32)
+    fig.subplots_adjust(left=0.06, right=0.99, top=0.86, bottom=0.27, wspace=0.32)
     out = d / "steering.png"
     fig.savefig(out, dpi=160, facecolor=SURFACE)
     print(f"saved {out.relative_to(ROOT)}")

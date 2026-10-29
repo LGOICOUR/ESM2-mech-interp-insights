@@ -12,7 +12,9 @@ per layer, scored only on held-out chains, next to baselines that use no model;
 (3) at the best layers, project the probe's direction out of the residual stream
 *during the forward pass*, with a random direction as control, and measure what
 the model's own masked-residue predictions lose; (4) refit a probe on the ablated
-activations to ask whether the direction was the concept or one line through it.
+activations to ask whether the direction was the concept or one line through it;
+(5) add the direction back to coil residues, in doses, and ask whether the model's
+predicted chemistry moves the way the biology says.
 
 This is a research exercise on a small open model, not a tool. Nothing here has
 been reviewed by anyone but the agent that built it (see "How this was built").
@@ -104,9 +106,11 @@ Full table with every CI, top-1 change rates and the original-probe column:
   which the final secondary-structure representation does not explain.
 
 Reading, in one sentence: in ESM-2 150M secondary structure is cleanly
-decodable, the decoded direction is causally used for the right class, and
-nearly all of what the model actually reads lives in the class-mean geometry,
-not in the probe's weight vector.
+decodable, the decoded direction is causally used for the right class, nearly
+all of what the model actually reads lives in the class-mean geometry, not in
+the probe's weight vector, and adding that geometry to a coil residue makes the
+model predict helix or strand chemistry there in the amounts the biology says
+(the sufficiency block below).
 
 **Follow-up: is what the probe reads *beyond* the class-mean direction used?**
 The probe direction and the class-mean direction overlap (cosine 0.66 helix,
@@ -177,6 +181,78 @@ costing the other classes as much or, over five layers, more (−0.045 vs
 damage follows the geometry: over five layers both the strand class-mean
 direction and its matched random hit strand residues least and coil most.
 
+**Sufficiency: adding the direction makes the model predict the right
+chemistry.** Everything above removes a direction and asks what the model
+loses. The converse adds one. The class-mean helix direction is added to the
+residual vector of every coil residue at layer 29 during the forward pass, in
+doses of the helix-vs-coil gap along the direction (d = 1 moves the coil
+residues' mean coordinate onto the helix mean's: a 34-unit, two-SD step on a
+residual of norm 255), and the model's masked prediction at those residues is
+scored by amino-acid propensity, the log-ratio of each amino acid's frequency
+in helices to its overall frequency, computed on the fold's training chains,
+which reproduces the Chou–Fasman table (A, E, L, Q, M, R, K helix formers;
+V, I, Y, F, W, C, T strand formers; P, G, N, D, S coil formers). The strand
+direction, a within-amino-acid version of each direction (the control for
+composition: 28% of the helix direction and 45% of the strand direction lie in
+the span of the 20 amino-acid means, so a plain class-mean direction could
+simply inject "Ala-like" at the masked position), and a random direction of
+the same norm are run the same way. Pre-registered in `DECISIONS.md`; tables
+with every CI in
+[`results/p5/esm2_t30_150M/summary.md`](results/p5/esm2_t30_150M/summary.md).
+
+![Change in the helix- and strand-propensity of the prediction at coil residues against dose, per direction, and the KL from the unsteered prediction](results/p5/esm2_t30_150M/steering.png)
+
+| direction added at coil residues | dose | Δ helix-propensity | Δ strand-propensity | helix–coil gap closed | strand–coil gap closed | KL from unsteered | Δ log-lik., coil |
+|---|---|---|---|---|---|---|---|
+| class-mean helix | 1 | **+0.044** [+0.042, +0.045] | +0.008 | **0.33** [0.31, 0.34] | 0.05 | 0.029 | −0.049 |
+| class-mean helix | 2 | +0.098 | +0.031 | 0.74 | 0.16 | 0.133 | −0.181 |
+| class-mean helix | 4 | +0.153 | +0.073 | 1.15 | 0.39 | 0.422 | −0.526 |
+| class-mean strand | 1 | +0.007 | **+0.031** [+0.030, +0.032] | 0.05 | **0.17** [0.15, 0.18] | 0.029 | −0.039 |
+| class-mean strand | 2 | +0.027 | +0.053 | 0.20 | 0.28 | 0.129 | −0.151 |
+| class-mean strand | 4 | +0.053 | +0.065 | 0.40 | 0.35 | 0.558 | −0.570 |
+| within-amino-acid helix | 1 | +0.036 | +0.009 | 0.27 | 0.05 | 0.025 | −0.043 |
+| within-amino-acid helix | 4 | +0.133 | +0.083 | 1.00 | 0.44 | 0.384 | −0.495 |
+| within-amino-acid strand | 1 | +0.003 | +0.032 | 0.02 | 0.17 | 0.022 | −0.030 |
+| within-amino-acid strand | 4 | +0.078 | +0.181 | 0.59 | 0.97 | 0.646 | −0.668 |
+| random, helix norm | 1 | −0.001 | +0.001 | −0.01 | 0.01 | 0.005 | −0.005 |
+| random, strand norm | 1 | +0.000 | +0.002 | 0.00 | 0.01 | 0.007 | −0.008 |
+| random, helix norm | 4 | −0.004 | +0.016 | −0.03 | 0.08 | 0.088 | −0.088 |
+| random, strand norm | 4 | +0.008 | +0.014 | 0.06 | 0.08 | 0.108 | −0.111 |
+
+- **The direction is sufficient, and the chemistry is right.** At one gap the
+  prediction at coil residues moves a third of the way to what the model
+  predicts at its own helix residues: alanine +1.7, leucine +1.2, glutamate
+  +1.0, glutamine +0.7, arginine +0.5 percentage points of predicted
+  probability; glycine −1.8, proline −1.3, serine −0.8, threonine −0.6,
+  asparagine −0.4. The strand direction raises valine +1.3, isoleucine +0.6,
+  threonine, phenylalanine and cysteine, and lowers aspartate, proline,
+  glycine, lysine and glutamate. The direction was fit from class labels
+  alone. A random direction of the same norm does 2–7% of the shift.
+- **Not injected identity.** The within-amino-acid directions, which carry no
+  composition difference by construction, keep 83% of the helix effect and
+  all of the strand effect at one gap, and the within-amino-acid strand
+  direction is the better strand direction at higher doses (0.97 of the gap
+  at four gaps, against 0.35 for the plain direction, which saturates): the
+  composition part of the plain strand direction, largely the stream's top
+  principal component, is not what the output reads as strand.
+- **Super-linear, then saturating or overshooting.** Doubling the dose
+  multiplies the effect by 2.0–2.5 up to two gaps. At four gaps the strand
+  direction saturates and the helix direction overshoots (1.15 of the gap:
+  coil residues predicted more helix-like than real helix residues), at a
+  cost of 0.5 nats per coil residue, with 56–61% of top-1 predictions changed.
+- **Specific but not exclusive.** The other class's propensity rises too, at
+  a fifth (helix direction) to a quarter (strand direction) of the targeted
+  one at one gap, because both directions move mass off the coil formers and
+  part of it onto the hydrophobic residues that helices and strands share;
+  the ratio worsens with dose.
+- **Mostly local.** Steering coil residues costs the helix and strand residues
+  of the same chains 6–8% of what it costs the coil residues under the helix
+  direction; under the strand direction the real strand residues lose 41% as
+  much (0.016 against 0.039 nats), the one place the steering reaches beyond
+  the steered positions. The original layer-30 probe calls 84% of the steered
+  coil residues helix (layer 29: 94%): the next layer passes the injected
+  signal on.
+
 ## Caveats, what did not work first
 
 - **The effect sizes are small.** The strongest single-direction effect at the
@@ -184,14 +260,22 @@ direction and its matched random hit strand residues least and coil most.
   moves the output by 0.01. "Separated from the random control" is not "the
   model depends on it". The whole class-mean plane over five layers (−0.15 to
   −0.23 nats, ~40% of top-1 predictions change) is the only ablation here that
-  visibly degrades the model.
+  visibly degrades the model. The steering test reads larger in relative
+  terms (one gap at one layer closes a third of the helix–coil difference in
+  predicted chemistry), but that difference is itself 0.13 nats of expected
+  log-propensity, one to two percentage points of probability per amino acid.
 - **The pre-registered sizes were wrong; the directions held.** Before the run
   (DECISIONS.md) the agent predicted −0.02 to −0.10 nats for one direction at
   layer 29 (got −0.011 / −0.009 for the probe directions, −0.031 for the
   class-mean helix direction), −0.1 to −0.3 for the late band (got −0.03 for
   probe directions, −0.07 to −0.15 for class-mean), and that the probe's plane
   would hurt every class by −0.2 to −0.5 (got −0.03: wrong by ten times). All
-  seven predictions held qualitatively; three missed quantitatively.
+  seven predictions held qualitatively; three missed quantitatively. The
+  steering test's five predictions (2026-10-29) held in their headline parts
+  and missed in five details, two of them in the direction opposite to the
+  earlier misses: the model-level propensity gap is smaller than the
+  composition-level one, not larger, and the other class's score rises rather
+  than falls.
 - **Stacked projections with clean-fit directions do not add up.** After the
   class-mean plane is projected out of layers 26–28, the clean-fit plane at 29
   no longer equalizes the class means there (refit 0.70, against 0.22 when 29
@@ -203,7 +287,11 @@ direction and its matched random hit strand residues least and coil most.
   "class-mean directions carry more than the concept".
 - **The read-out layer is near the top (29 of 30)**, so "load-bearing" at the
   single layer is close to "read by the LM head"; the 12–18 scope is what shows
-  that an earlier removal is recomputed.
+  that an earlier removal is recomputed. The same holds for the steering test:
+  adding a direction at layer 29 is close to adding it at the head's input, so
+  the precise claim is that the output reads the class-mean direction as helix
+  or strand chemistry, not that earlier computation uses it that way. Steering
+  at a mid layer was not run.
 - **The masked read-out is an approximation.** Masking every 8th residue per
   pass sits 0.022 nats below the exact one-residue-per-pass PLL on six test
   chains (top-1 agreement 87%); every condition uses the identical schedule, so
@@ -250,7 +338,7 @@ direction and its matched random hit strand residues least and coil most.
 
 ```bash
 uv sync
-uv run pytest -q                              # 28 offline tests, no network, ~6 s
+uv run pytest -q                              # 35 offline tests, no network, ~6 s
 uv run python scripts/p1_data.py              # downloads two label files from Hugging Face (~0.4 MB)
 uv run python scripts/p2_read.py              # downloads ESM-2 150M (~0.6 GB); records 4.5 GB of activations in ~25 s on an M4 Pro
 uv run python scripts/p3_probe.py && uv run python scripts/p3_figure.py     # ~1 min
@@ -258,12 +346,14 @@ uv run python scripts/p4_ablate.py && uv run python scripts/p4_figure.py    # ~1
 uv run python scripts/p4_ablate.py --kinds probe_H_perp probe_E_perp random dm_H_perp dm_E_perp --scopes single band --tag perp   # ~26 min; the remainder follow-up, into results/p4/esm2_t30_150M_perp/
 uv run python scripts/p4_ablate.py --kinds random_vm_dmH random_vm_dmE random_vm_dmEperp --scopes single band --tag vm   # ~16 min; variance-matched random controls, into results/p4/esm2_t30_150M_vm/
 uv run python scripts/check_variance.py --out esm2_t30_150M_vm   # variance share, class gap and top-eigenvector loading of every direction at layer 29, ~1 min
+uv run python scripts/p5_steer.py && uv run python scripts/p5_figure.py    # ~55 min; the steering test (6 directions × 4 doses + baseline), into results/p5/esm2_t30_150M/
 ```
 
 Every script prints its own checks and refuses to continue if one fails
 (label/sequence alignment, no duplicate chains, finite activations, layer-0
 probe = identity baseline, P4's unablated pass matches the P2 recording, the
-removed coordinate is zero after the hook). Nothing calls a paid API. Quick
+removed coordinate is zero after the hook, steered residues move by exactly the
+intended amount and no other residue moves). Nothing calls a paid API. Quick
 versions (each `--limit N` run writes to its own `<recording>_limitN` folder,
 which the next script takes as `--recording`):
 
@@ -272,6 +362,7 @@ uv run python scripts/p2_read.py --limit 20
 uv run python scripts/p3_probe.py --recording esm2_t30_150M_limit20 --layers 0 15 29 --n-boot 50
 uv run python scripts/p4_ablate.py --recording esm2_t30_150M_limit20 --limit 12 --kinds probe_H dm_sub random --scopes single --n-boot 50
 uv run python scripts/p4_figure.py --recording esm2_t30_150M_limit20_limit12
+uv run python scripts/p5_steer.py --recording esm2_t30_150M_limit20 --limit 12 --kinds dm_H random_H --doses 1 --n-boot 50
 ```
 
 That reduced chain, plus the tests and the full P1, was run from a fresh
@@ -284,13 +375,15 @@ then `--recording esm2_t33_650M` downstream) and was not run.
 
 ```
 src/esm2_probe/   data (labels, de-duplication, one-hot baselines), reader (hooks, masked read-out),
-                  probe (grouped CV, CIs, directions), ablate (projection hook), baselines
-scripts/          p1_data -> p2_read -> p3_probe (+ p3_figure) -> p4_ablate (+ p4_figure); each prints its checks;
-                  check_masking and check_variance are diagnostics
+                  probe (grouped CV, CIs, directions), ablate (projection hook),
+                  steer (additive hook, within-amino-acid directions, propensity scoring), baselines
+scripts/          p1_data -> p2_read -> p3_probe (+ p3_figure) -> p4_ablate (+ p4_figure) -> p5_steer (+ p5_figure);
+                  each prints its checks; check_masking and check_variance are diagnostics
 tests/            offline tests on synthetic data and a fake model (no network)
 results/          p1 proteins + config; p2 index + summary (activations are not committed);
-                  p3 metrics, layer curves, figure; p4 metrics, per-residue read-outs, ablation table, figure;
-                  p4 <recording>_perp and _vm: the remainder follow-up and the variance-matched controls, with the variance check
+                  p3 metrics, layer curves, figure; p4 metrics, ablation table, figure (per-residue read-outs are not committed);
+                  p4 <recording>_perp and _vm: the remainder follow-up and the variance-matched controls, with the variance check;
+                  p5 metrics, steering tables, dose-response figure
 DECISIONS.md      dated log of every choice, with the ablation's expectations written before it ran
 ```
 
@@ -313,7 +406,11 @@ the headline) was added the same day at Luis's request, after he was walked
 through the first result and asked whether the probe's own information is
 used; the agent pre-registered it, ran it and wrote it up, and then did the
 same for the variance-matched control that the first follow-up named as
-missing, again at Luis's request.
+missing, again at Luis's request. The steering test (the sufficiency block)
+was added on 2026-10-29 after a stock-take in which the agent said the repo
+was a controls suite with no positive finding and named this as the one cheap
+experiment that could change that; Luis chose to run it; the agent designed
+it, pre-registered five predictions, ran it and wrote it up.
 
 **Luis has not yet reviewed the result.** Until he says otherwise, treat the
 numbers as an agent's unreviewed run of an honest pipeline: reproducible from

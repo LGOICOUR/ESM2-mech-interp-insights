@@ -527,3 +527,97 @@ Predictions, confidence in brackets:
 A 12-chain smoke run of two conditions follows this entry to check the code,
 then the full run; this entry is not edited afterwards. Luis chose the
 experiment; the design, the predictions and the confidences are the agent's.
+
+## 2026-10-29 — Steering test ran (Claude): predictions against the table
+
+24 conditions and a baseline, 548 chains, 48,834 coil residues steered and
+read, 53 min; hook check exact (steered residues moved along u by 1.000 of the
+intended amount, no other residue moved at layer 29); baseline identical to
+P4's (PLL −1.958, top-1 39.2%). Tables with CIs in
+`results/p5/esm2_t30_150M/summary.md`, figure `steering.png`. Baseline
+propensity scores of the model's own predictions: helix residues +0.024, coil
+−0.109 on the helix scale (G_H = 0.133 [0.127, 0.138]); strand residues +0.047,
+coil −0.140 on the strand scale (G_E = 0.187 [0.178, 0.197]).
+
+1. **Direction and specificity: held for the targeted class, the coil score
+   and the random control; missed on the cross-class sign.** At d = 1 the
+   class-mean helix direction raises the helix score at coil residues by
+   +0.044 [+0.042, +0.045] and the strand direction raises the strand score by
+   +0.031 [+0.030, +0.032]; both lower the coil score (−0.031, −0.019). The
+   other class's score does not fall: it rises, by +0.008 under the helix
+   direction and +0.007 under the strand direction (a fifth and a quarter of
+   the targeted score). Both directions move mass off the coil formers (G, P,
+   S, N, D) and part of it onto the hydrophobic residues helices and strands
+   share (L, I, F, W, M), so specificity is a ratio, not a sign, and the ratio
+   worsens with dose (0.10 → 0.48 for helix, 0.11 → 0.81 for strand from
+   d = 0.5 to 4). The random directions do 2–7% of the matched class-mean
+   direction's shift on the targeted score at every dose up to 2, and 6–15%
+   on the other score except at d = 0.5, where both are below 0.002 nats.
+2. **Size at d = 1: held, the middle option.** F_H(dm_H) = 0.33 [0.31, 0.34],
+   F_E(dm_E) = 0.17 [0.15, 0.18]. The gap prediction missed in the other
+   direction: G_H 0.133 and G_E 0.187 are *below* the composition-level gaps
+   (0.18, 0.25), not above. The model's average prediction at helix residues is
+   less helix-like than the real helix composition: masked predictions
+   reproduce about three quarters of the compositional contrast between
+   classes.
+3. **Dose–response: held, super-linear; the breakdown at 4 half held.** F
+   rises monotonically for both directions. F(2)/F(1) = 2.25 (helix) and 1.70
+   (strand), and F(1)/F(0.5) = 2.5 and 2.0: doubling the dose multiplies the
+   effect by two or more up to two gaps. From 2 to 4 the helix direction keeps
+   rising (×1.57) and the strand direction saturates (×1.24). At d = 4 ΔPLL is
+   −0.53 and −0.57 (held) but KL is 0.42 for helix, under the 0.5 predicted,
+   and 0.56 for strand (held). F_H(dm_H, 4) = 1.15 [1.12, 1.20]: at four gaps
+   coil residues are predicted more helix-like than the model's own helix
+   residues (the 35% option).
+4. **Composition control: held, and stronger than predicted.** At d = 1 the
+   within-amino-acid directions keep 0.83 of the helix effect and 1.04 of the
+   strand effect. At higher doses the within-amino-acid strand direction is
+   the better strand direction: 0.44 of the gap at d = 2 against 0.28 for the
+   plain one, 0.97 against 0.35 at d = 4, where the plain direction has
+   saturated. The plain strand direction's composition component (45% of its
+   squared norm, largely the stream's top principal component) is not what
+   the output reads as strand; the within-amino-acid part is. For helix the
+   two directions are nearly the same (cosine 0.96) and behave the same
+   (0.78–0.89 at every dose). The sufficiency effect is not amino-acid
+   identity injected at the masked position.
+5. **Pass-through and locality: pass-through held; locality held for helix,
+   missed for strand; the KL ordering missed.** The original layer-29 probe
+   calls 94% of the steered coil residues helix at d = 1 and the layer-30
+   probe 84% (strand: 81% and 63%; at d = 0.5, 44% and 36%): the next layer
+   passes the injected signal on. Under the helix direction at d = 1, helix
+   and strand residues of the same chains lose 0.003 and 0.004 nats against
+   coil residues' 0.049 (6–8%); under the strand direction they lose 0.006 and
+   0.016 against 0.039, and 0.016/0.039 = 41% is over the third predicted:
+   coil residues pushed toward strand cost the real strand residues next to
+   them, 2.5 times what helix steering costs helix residues (a reading: sheets
+   are paired structures and a strand residue's prediction depends on its
+   partners' states; not tested). dm_E's KL at coil residues equals dm_H's
+   within 5% at every dose up to 2 (0.007 / 0.006, 0.029 / 0.029, 0.129 /
+   0.133) and exceeds it only at 4 (0.56 / 0.42); the top-principal-component
+   character did not make the strand direction more disruptive at matched
+   dose. Strand-specific in propensity at every dose: held.
+
+Score: five predictions, each in several parts; the headline parts held (own
+class rises, coil falls, random does nothing, 0.10–0.50 of the gap at one
+gap, super-linear, composition control, pass-through), and five parts missed
+(the cross-class sign, the size of the model-level gap, dm_H's KL at d = 4,
+locality for the strand direction, dm_E's KL ordering). The agent's sizes
+were wrong in both directions this time, not only too large.
+
+**What the result says.** Adding the class-mean helix direction to coil
+residues at one layer makes ESM-2 predict helix-forming amino acids there,
+in the amounts the biology says: alanine +1.7, leucine +1.2, glutamate +1.0,
+glutamine +0.7, arginine +0.5 percentage points of predicted probability at
+one gap; glycine −1.8, proline −1.3, serine −0.8, threonine −0.6, asparagine
+−0.4. The strand direction raises valine, isoleucine, threonine,
+phenylalanine, cysteine and lowers aspartate, proline, glycine, lysine,
+glutamate. A random direction of the same norm does none of it. The
+direction fit from class labels alone, with its composition component
+removed, does the same. One gap closes a third of the helix–coil difference
+in predicted chemistry, two gaps three quarters, four gaps overshoot. This is
+the first positive result in the repo: the earlier entries showed the
+direction is read lightly (necessity, 0.01–0.03 nats); this one shows it is
+read as the right thing (sufficiency). Caveat carried into the README: layer
+29 is one layer below the head, so "the output reads this direction as helix
+chemistry" is the precise claim; whether earlier layers use it the same way
+is not tested. Luis has not reviewed this.
