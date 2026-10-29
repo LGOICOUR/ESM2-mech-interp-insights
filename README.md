@@ -253,6 +253,40 @@ with every CI in
   coil residues helix (layer 29: 94%): the next layer passes the injected
   signal on.
 
+**Where this sits in the literature.** Steering a protein language model
+along structure-related directions is not new, and neither is the read-out.
+[InterPLM](https://arxiv.org/abs/2412.12101) (Simon & Zou, 2024; Nature
+Methods 2025) clamps sparse-autoencoder features in ESM-2 and reads the
+model's softmax at masked positions, with a periodic-glycine feature as the
+worked example; [Villegas Garcia & Ansuini (2025)](https://arxiv.org/abs/2502.09135)
+steer ESM-2 8M with sparse-autoencoder latents toward zinc-finger domains;
+[Banerjee et al. (2025)](https://arxiv.org/abs/2507.06458) steer generation by
+neuron activation toward properties that include alpha helices;
+[Huang et al. (2025)](https://arxiv.org/abs/2509.07983) add difference-of-means
+vectors, the construction used here, to ESM2, ESM3 and ProLLaMA for
+thermostability and solubility; the off-manifold collapse that strong
+guidance produces ([2026](https://arxiv.org/abs/2608.18597)) is what the
+four-gap rows above show in miniature; [FoldSAE (2026)](https://arxiv.org/abs/2511.22519)
+steers secondary-structure formation with a tunable dose, in RFdiffusion.
+Sparse-autoencoder features for secondary structure in ESM-2 are described
+by [Adams et al. (2025)](https://proceedings.mlr.press/v267/adams25a.html)
+and [Gujral et al. (2025)](https://www.pnas.org/doi/10.1073/pnas.2506316122).
+On the method side, the decodable-versus-causal loop and the refit-probe
+check have a recent literature of their own
+([Refit the Probe, 2026](https://arxiv.org/abs/2606.00926);
+[Dissociating Decodability and Causal Use, 2026](https://arxiv.org/abs/2604.22128))
+next to the references already cited. What this repo adds, as far as an
+abstract-level search on 2026-10-29 could tell, is the per-residue,
+position-matched version with a class-mean direction; the dose in natural
+units, with its dose–response and overshoot; the composition-controlled
+direction as the identity-injection control (the nearest precedent is a
+composition-preserving shuffle baseline for family signals,
+[NeurIPS 2025](https://neurips.cc/virtual/2025/130747)); and the paired,
+pre-registered necessity and sufficiency tests on one direction with random
+and variance-matched controls. Those are increments in rigor and framing, not
+a new phenomenon. The search read abstracts and snippets only; a closer
+preprint could exist.
+
 ## Caveats, what did not work first
 
 - **The effect sizes are small.** The strongest single-direction effect at the
@@ -410,7 +444,10 @@ missing, again at Luis's request. The steering test (the sufficiency block)
 was added on 2026-10-29 after a stock-take in which the agent said the repo
 was a controls suite with no positive finding and named this as the one cheap
 experiment that could change that; Luis chose to run it; the agent designed
-it, pre-registered five predictions, ran it and wrote it up.
+it, pre-registered five predictions, ran it and wrote it up. The related-work
+paragraph in that block came from an abstract-level literature check the
+agent ran the same day at Luis's request, after saying in conversation that
+it did not know of a published version; the check found several.
 
 **Luis has not yet reviewed the result.** Until he says otherwise, treat the
 numbers as an agent's unreviewed run of an honest pipeline: reproducible from

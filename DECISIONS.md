@@ -621,3 +621,43 @@ read as the right thing (sufficiency). Caveat carried into the README: layer
 29 is one layer below the head, so "the output reads this direction as helix
 chemistry" is the precise claim; whether earlier layers use it the same way
 is not tested. Luis has not reviewed this.
+
+## 2026-10-29 — Novelty check on the steering result (Claude, after the run, at Luis's request)
+
+In the walk-through the agent said it did not know of a published version
+of the steering test and had not searched. Luis asked for the search.
+Abstract-level only: web search snippets, several phrasings including one
+extended search, one arXiv abstract page fetched, no full texts.
+
+Found. The phenomenon and the read-out both exist. InterPLM (Simon & Zou,
+2024; Nature Methods 2025) clamps sparse-autoencoder features in ESM-2 and
+reads the softmax at masked positions, the read-out used here, with a
+periodic-glycine feature as the worked example (that detail is from a
+PREreview of the paper, not the paper). Villegas Garcia & Ansuini (2025)
+steer ESM-2 8M with sparse-autoencoder latents toward zinc-finger domains by
+resampling residues from the intervened prediction. Banerjee et al. (2025)
+steer generation by neuron activation toward properties that include alpha
+helices. Huang et al. (2025) add difference-of-means vectors, the class-mean
+construction, to ESM2, ESM3 and ProLLaMA for thermostability and solubility.
+A 2026 paper on off-manifold collapse under strong guidance describes the
+regime the four-gap rows show. FoldSAE (2026) steers secondary-structure
+formation with a tunable dose in RFdiffusion. On the method side, Refit the
+Probe (2026) and Dissociating Decodability and Causal Use (2026) make the
+decodable-versus-causal and refit-probe points that P4 relies on.
+
+Not found. Per-residue, position-matched steering with a class-mean
+direction read out as the shift in the predicted amino-acid distribution
+scored by data-derived propensities; a dose in natural units with a
+dose–response and an overshoot regime; a composition-controlled
+(within-amino-acid) steering direction as the identity-injection control;
+the paired, pre-registered necessity and sufficiency tests on one direction
+with random and variance-matched controls.
+
+Conclusion. The sentence "nobody has steered a protein language model along
+a secondary-structure direction" is retired. The repo's contribution is the
+controls and the dose–response, not the effect. The outcome entry's "first
+positive result in the repo" stands as a statement about this repo. The
+README's sufficiency block now carries a related-work paragraph with these
+citations. Limits: snippets and abstracts only, so a closer preprint could
+exist; the venue listing for Huang et al. was not verified. Luis has not
+reviewed this.
