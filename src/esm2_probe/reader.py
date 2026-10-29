@@ -6,8 +6,8 @@ on each `EsmLayer`. Index 0 = embedding output, k = output of layer k. (The last
 entry of `output_hidden_states` has the final LayerNorm applied; the hook on the
 last layer does not, so every layer here is the raw residual.)
 
-The same hooks are the attachment point for the P4 ablation: a projection hook
-on layer k rewrites that layer's output before layer k+1 reads it.
+The same hooks are the attachment point for the P4 ablation and the P5 steering:
+a hook on layer k rewrites that layer's output before layer k+1 reads it.
 """
 
 from __future__ import annotations
@@ -117,15 +117,19 @@ class MaskedReadout:
     logp_true: np.ndarray  # [len] log p(true residue | rest of chain), residue masked
     top1: np.ndarray       # [len] token id of the model's top prediction at the masked residue
     k: int = field(default=8)
+    logp_tokens: np.ndarray | None = None  # [len, len(token_ids)] log p(token | rest) at the requested tokens, if asked for
 
 
 @torch.no_grad()
-def masked_readout(tok, model, device: str, seq: str, k: int = 8, ctx=None) -> MaskedReadout:
+def masked_readout(tok, model, device: str, seq: str, k: int = 8, ctx=None,
+                   token_ids: list[int] | None = None) -> MaskedReadout:
     """Pseudo-log-likelihood by k passes: pass j masks every k-th residue starting at
     j; the readout at each residue comes from the pass in which it was masked. The
     full single-residue PLL would need len(seq) passes; k=8 masks 12.5% per pass,
     close to the 15% the model was trained with. `ctx`, if given, receives the
-    residue mask of the k-pass batch so P4's projection hooks act on residues only."""
+    residue mask of the k-pass batch so P4's projection hooks act on residues only.
+    `token_ids`, if given, also returns the log-probabilities of those tokens at
+    every residue (P5's amino-acid distribution read-out)."""
     ids = tok(seq, return_tensors="pt")["input_ids"]  # [1, len+2]
     n = len(seq)
     sched = torch.tensor(mask_schedule(n, k))
@@ -144,4 +148,7 @@ def masked_readout(tok, model, device: str, seq: str, k: int = 8, ctx=None) -> M
     pos = torch.arange(n, device=device)
     lp = logp[pass_of, pos, true]
     top1 = logits[pass_of, pos].argmax(-1)
-    return MaskedReadout(lp.cpu().numpy(), top1.cpu().numpy(), k)
+    lpt = None
+    if token_ids is not None:
+        lpt = logp[pass_of, pos][:, torch.tensor(list(token_ids), device=device)].cpu().numpy()
+    return MaskedReadout(lp.cpu().numpy(), top1.cpu().numpy(), k, lpt)

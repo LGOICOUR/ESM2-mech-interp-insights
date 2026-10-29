@@ -17,3 +17,6 @@ results/p4/**/acts_*.npy
 
 # per-residue read-outs for every ablation condition (47 MB; p4_ablate.py regenerates them)
 results/p4/*/per_residue.npz
+
+# per-residue read-outs for every steering condition (p5_steer.py regenerates them)
+results/p5/*/per_residue.npz

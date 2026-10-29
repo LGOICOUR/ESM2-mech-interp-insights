@@ -101,3 +101,18 @@ def test_masked_readout_sets_residue_mask_on_the_context():
     rm = ctx.residue_mask
     assert rm.shape == (3, len(seq) + 2)
     assert rm[:, 1:-1].all() and not rm[:, 0].any() and not rm[:, -1].any()
+
+
+def test_masked_readout_returns_log_probs_at_requested_tokens():
+    seq = "ACDEFGHIK"
+    ids = [4, 5, 6]
+    r = masked_readout(FakeTok(), FakeModel(), "cpu", seq, k=3, token_ids=ids)
+    assert r.logp_tokens.shape == (len(seq), 3) and np.all(r.logp_tokens <= 0)
+    true = FakeTok()(seq)["input_ids"][0, 1:len(seq) + 1].numpy()
+    hits = 0
+    for i, t in enumerate(true):
+        if int(t) in ids:  # the column of the true token must agree with the true-token read-out
+            assert np.isclose(r.logp_tokens[i, ids.index(int(t))], r.logp_true[i])
+            hits += 1
+    assert hits >= 2
+    assert masked_readout(FakeTok(), FakeModel(), "cpu", seq, k=3).logp_tokens is None

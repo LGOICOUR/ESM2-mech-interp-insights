@@ -422,3 +422,108 @@ strand class-mean direction is, to first order, removing the stream's dominant
 axis, which is why it hurts everything. The specific effects (helix for dm_H
 and its remainder; the double dissociation of the probe directions) are the
 part of the table that size does not explain. Luis has not reviewed this.
+
+## 2026-10-29 — Steering test: is the class-mean direction *sufficient* to move the model's chemistry? Pre-registered (Claude, before the run)
+
+Every experiment so far tests necessity: remove a direction, measure what the
+model's own predictions lose. After a stock-take Luis chose to run the one
+cheap test that could give a positive finding with biological content:
+sufficiency. If the class-mean helix direction carries "this residue is in a
+helix" for the model, adding it to coil residues should make the model predict
+helix-forming amino acids there (Ala, Glu, Leu, Gln, Met) and fewer
+strand-formers (Val, Ile, Tyr, Phe); the strand direction should do the
+reverse; a random direction of the same size should do neither.
+
+Design (`scripts/p5_steer.py`, `src/esm2_probe/steer.py`, `scripts/p5_figure.py`):
+
+- **Intervention.** At layer 29 (L*), during the forward pass on held-out
+  chains, add d · g · u to the residual vector of every labelled coil residue
+  (masked or not; helix and strand residues and unlabelled residues untouched;
+  the same positions in the k = 8 masked passes and in the unmasked recording
+  pass). u is a unit direction fit on the fold's training chains (the same
+  40k-residue subsample P3 and P4 use); g = (μ_class − μ_coil) · u on those
+  residues, so d = 1 moves the coil residues' mean coordinate along u onto the
+  class mean's, d = 2 twice as far. Doses 0.5, 1, 2, 4. Measured in advance:
+  g ≈ 33 activation units for helix and 36 for strand against a mean residual
+  norm of 255 at layer 29, with within-class SDs along the directions of 16–18
+  (helix) and 30 (strand): d = 1 is a 2-SD move for helix and a 1.2-SD move for
+  strand; d = 4 adds half the residual's norm and is out of distribution by
+  construction.
+- **Directions, six kinds.** dm_H, dm_E as in P4. dm_H_strat, dm_E_strat: the
+  within-amino-acid class-mean directions (for each of the 20 amino acids
+  separately, the mean of class-c residues minus the mean of the rest, averaged
+  with the amino acid's overall frequency as weight, then normalized). This is
+  the control for composition: helices are rich in A/E/L/Q, so a plain
+  class-mean direction partly encodes that, and adding it at a masked position
+  could inject "this token is Ala-like" directly rather than "this position is
+  helical". Measured in advance at layer 29: 28% of dm_H's squared norm and
+  45% of dm_E's lie in the span of the 20 amino-acid means; the stratified
+  directions keep 8% and 15–17% there (the split is not clean, because the
+  amino-acid means carry structure too); cosines with the plain directions
+  0.96 (helix) and 0.91 (strand); their own gaps ≈ 31. random_H, random_E: one
+  Gaussian unit direction per fold, scaled to the norm dm_H or dm_E has at
+  that dose (random_H reuses P4's random-control seed).
+- **Read-out**, at every coil residue, from the pass in which it is masked: the
+  predicted distribution over the 20 standard amino acids (renormalized),
+  scored with the fold's training-chain propensities
+  logP_c(a) = log[(n(a,c)+1)/(n(c)+20)] − log[(n(a)+1)/(n+20)] (Chou–Fasman-style
+  log ratios, in nats; on the whole set the helix formers come out as A, E, L,
+  Q, M, R, K and the strand formers as V, I, Y, F, W, C, T, the classic table).
+  S_c(p) = Σ_a p(a) logP_c(a). Primary numbers: ΔS_H and ΔS_E at coil residues
+  against the unsteered pass, with chain-resampled 95% CIs, and the fraction
+  of the gap closed, F_c = ΔS_c / G_c, where G_c is the baseline difference
+  between class-c residues' own S_c and coil residues' S_c (the model's own
+  helix residues define what a helix prediction looks like). Secondary: Δ mass
+  on helix / strand / coil formers (the amino acids with positive propensity
+  in the fold's table); KL(p_steered ‖ p_base), ΔPLL and top-1 changes at coil
+  residues (the size and cost of the change); ΔPLL at helix and strand
+  residues of the same chains (side effects through attention); the fold's
+  original layer-29 and layer-30 probes applied to the steered unmasked
+  activations at coil residues (what share they now call helix / strand); and
+  the mean change in predicted probability per amino acid.
+- **Compute.** 24 conditions and a baseline, each a full k = 8 masked pass
+  over the 548 chains, about 2 min each: 45–55 min, not the "fifteen minutes"
+  the stock-take quoted (that figure counted one condition).
+
+Predictions, confidence in brackets:
+
+1. **Direction and specificity.** At d = 1, dm_H raises S_H at coil residues
+   and lowers S_E; dm_E raises S_E and lowers S_H; all four CIs exclude zero
+   [85%]. Both lower S_C [80%]. The matched random directions shift S_H and
+   S_E by less than a fifth of what the class-mean direction of the same norm
+   does, at every dose up to 2 [75%].
+2. **Size at d = 1.** F_H(dm_H) and F_E(dm_E) both between 0.10 and 0.50 [50%];
+   at least one below 0.10, meaning the direction is read as lightly in this
+   direction as the ablation's 0.03 nats suggested [30%]; at least one above
+   0.50 [20%]. The composition-level gap (each class's own amino-acid
+   frequencies scored by its propensities, minus coil's) is 0.18 nats for
+   helix and 0.25 for strand; the model-level G, measured in the baseline, is
+   expected to be larger, 0.2–0.4 [60%].
+3. **Dose–response.** F rises monotonically from 0.5 to 2 for both class-mean
+   directions [85%]. F(2)/F(1) above 1.5, super-linear, the sub-additivity
+   seen in the remainder follow-up read the other way [45%]; between 1.0 and
+   1.5 [40%]; below 1.0, saturating [15%]. At d = 4 the output is visibly
+   degraded: KL at coil residues above 0.5 nats and ΔPLL below −0.3 nats for
+   both directions [60%]; F_H(dm_H, 4) ≥ 1, coil residues' predictions
+   overshooting helix residues' own level [35%].
+4. **Composition control.** The within-amino-acid directions keep most of the
+   effect: F(strat, 1) ≥ 0.6 × F(dm, 1) for both classes [60%]; between 0.25
+   and 0.6 for at least one class [25%]; below 0.25 for at least one, which
+   would mean the sufficiency result is mostly amino-acid identity injected at
+   the masked position [15%]. The strand direction, with 45% of its squared
+   norm in the composition subspace, is the likelier to drop.
+5. **Pass-through and locality.** Under dm_H at d = 1 the original layer-29
+   probe calls at least half of the steered coil residues helix [80%]
+   (geometry, near-trivial: the added vector has cosine 0.66 with the probe's
+   direction), and the layer-30 probe calls at least half as many as the
+   layer-29 one [70%]: the next layer passes the injected signal on, as the
+   refit-at-30 result suggested. ΔPLL at helix and strand residues of the same
+   chains is less than a third of coil residues' ΔPLL in magnitude [70%]: the
+   effect stays at the steered positions. At every dose dm_E changes the output
+   more than dm_H (larger KL at coil residues) [70%], as its top-principal-
+   component character predicts, while staying strand-specific in propensity
+   [75%].
+
+A 12-chain smoke run of two conditions follows this entry to check the code,
+then the full run; this entry is not edited afterwards. Luis chose the
+experiment; the design, the predictions and the confidences are the agent's.
