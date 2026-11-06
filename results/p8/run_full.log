@@ -1,0 +1,35 @@
+L* = 29; erasure maps fit in 4s; training-row displacement by class (H, E, C) fold 0: edit [38.66, 46.73, 29.54] vs radius 169.3; fold 1: edit [38.61, 46.72, 29.75] vs radius 170.8; fold 2: edit [38.73, 47.23, 29.55] vs radius 170.2; fold 3: edit [38.52, 46.47, 29.86] vs radius 170.9; fold 4: edit [38.73, 46.04, 30.07] vs radius 171.0
+W1106 13:28:18.441000 30679 torch/distributed/elastic/multiprocessing/redirects.py:35] NOTE: Redirects are currently not supported in MacOs.
+Loading weights:   0%|          | 0/491 [00:00<?, ?it/s]Loading weights: 100%|██████████| 491/491 [00:00<00:00, 30213.81it/s]
+none: dPLL +0.000; top-1 acc 39.2%; displacement 0.00 (radius 175.6); L29 linear 0.815 QDA 0.807; L30 linear 0.812 QDA 0.807; 153s
+linear (plane): dPLL -0.062; top-1 acc 37.9%; displacement 38.19 (radius 175.6); L29 linear 0.218 QDA 0.805; L30 linear 0.565 QDA 0.806; 298s
+quadratic (plane + shape): dPLL -0.102; top-1 acc 36.7%; displacement 55.33 (radius 175.6); L29 linear 0.216 QDA 0.030; L30 linear 0.443 QDA 0.270; 450s
+quadratic, shuffled labels: dPLL -0.084; top-1 acc 37.2%; displacement 65.04 (radius 175.6); L29 linear 0.220 QDA 0.662; L30 linear 0.603 QDA 0.710; 606s
+# P8 quadratic erasure, `esm2_t30_150M`: L* = 29, 548 held-out chains, 113279 labelled residues
+
+Baseline masked PLL +0.000 (by construction 0), top-1 39.2%. Labelled share of residue positions 83.7% (unlabelled positions get the plane only).
+
+## The model's own output
+
+Change in masked log-likelihood of the true residue vs the unablated run (nats, mean [95% CI, chains resampled]); top-1 accuracy; mean displacement of the labelled rows at L* against the mean distance of a row from the training mean.
+
+| condition | ΔPLL all | ΔPLL helix | ΔPLL strand | ΔPLL coil | top-1 acc | displacement / radius |
+|---|---|---|---|---|---|---|
+| none | +0.000 [+0.000, +0.000] | +0.000 [+0.000, +0.000] | +0.000 [+0.000, +0.000] | +0.000 [+0.000, +0.000] | 39.2% | 0.00 / 175.6 |
+| linear (plane) | -0.062 [-0.065, -0.059] | -0.074 [-0.078, -0.069] | -0.049 [-0.054, -0.044] | -0.059 [-0.062, -0.056] | 37.9% | 38.19 / 175.6 |
+| quadratic (plane + shape) | -0.102 [-0.107, -0.099] | -0.125 [-0.131, -0.120] | -0.097 [-0.105, -0.090] | -0.086 [-0.091, -0.082] | 36.7% | 55.33 / 175.6 |
+| quadratic, shuffled labels | -0.084 [-0.088, -0.080] | -0.088 [-0.093, -0.083] | -0.069 [-0.075, -0.062] | -0.088 [-0.092, -0.083] | 37.2% | 65.04 / 175.6 |
+
+## Decodability after the edit
+
+Macro-F1 [95% CI] of readers refit on the edited rows (chain-grouped folds): linear probe and QDA.
+
+| condition | layer 29 linear | layer 29 QDA | layer 30 linear | layer 30 QDA |
+|---|---|---|---|---|
+| none | 0.815 [0.809, 0.820] | 0.807 [0.801, 0.812] | 0.812 [0.806, 0.818] | 0.807 [0.801, 0.812] |
+| linear (plane) | 0.218 [0.213, 0.222] | 0.805 [0.799, 0.810] | 0.565 [0.557, 0.572] | 0.806 [0.800, 0.811] |
+| quadratic (plane + shape) | 0.216 [0.212, 0.220] | 0.030 [0.027, 0.034] | 0.443 [0.436, 0.451] | 0.270 [0.261, 0.279] |
+| quadratic, shuffled labels | 0.220 [0.215, 0.224] | 0.662 [0.656, 0.668] | 0.603 [0.597, 0.610] | 0.710 [0.704, 0.716] |
+
+- training-row displacement by class (H, E, C) and mean row radius, per fold: fold 0: edit [38.66, 46.73, 29.54] vs radius 169.3; fold 1: edit [38.61, 46.72, 29.75] vs radius 170.8; fold 2: edit [38.73, 47.23, 29.55] vs radius 170.2; fold 3: edit [38.52, 46.47, 29.86] vs radius 170.9; fold 4: edit [38.73, 46.04, 30.07] vs radius 171.0
+- 607s on mps
