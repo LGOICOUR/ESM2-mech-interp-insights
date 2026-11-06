@@ -1,0 +1,27 @@
+L* = 29; C per fold [0.001, 0.001, 0.001, 0.001, 0.001] -> C_fix 0.001; 113279 residues, 548 chains; readers ['linear', 'mlp', 'svm']; kinds ['none', 'dm_sub', 'random_sub', 'probe_sub', 'dm_H', 'probe_H']; n_train linear 40000 / mlp all / svm 15000; hidden 256
+directions fit in 1s; cos(probe_H, dm_H) fold 0 = 0.661
+[none] rows edited; max leftover coordinate along the removed plane on held-out rows = 0.00e+00
+[none] linear macro-F1 0.815 [0.809, 0.820] (H 0.86, E 0.77, C 0.81) acc 0.820; 3s
+[none] mlp    macro-F1 0.812 [0.806, 0.818] (H 0.86, E 0.77, C 0.80) acc 0.817; 8s
+[none] svm    macro-F1 0.816 [0.809, 0.822] (H 0.87, E 0.77, C 0.81) acc 0.822; 90s
+[dm_sub] rows edited; max leftover coordinate along the removed plane on held-out rows = 1.55e-04
+[dm_sub] linear macro-F1 0.218 [0.214, 0.222] (H 0.16, E 0.01, C 0.49) acc 0.332; 2s
+[dm_sub] mlp    macro-F1 0.791 [0.785, 0.797] (H 0.84, E 0.75, C 0.78) acc 0.797; 8s
+[dm_sub] svm    macro-F1 0.777 [0.769, 0.784] (H 0.84, E 0.69, C 0.80) acc 0.793; 138s
+[random_sub] rows edited; max leftover coordinate along the removed plane on held-out rows = 3.10e-05
+[random_sub] linear macro-F1 0.815 [0.808, 0.820] (H 0.86, E 0.77, C 0.81) acc 0.820; 1s
+[random_sub] mlp    macro-F1 0.811 [0.804, 0.817] (H 0.86, E 0.77, C 0.80) acc 0.815; 8s
+[random_sub] svm    macro-F1 0.816 [0.809, 0.821] (H 0.87, E 0.77, C 0.81) acc 0.821; 89s
+[probe_sub] rows edited; max leftover coordinate along the removed plane on held-out rows = 4.84e-05
+[probe_sub] linear macro-F1 0.707 [0.698, 0.715] (H 0.75, E 0.62, C 0.75) acc 0.726; 1s
+[probe_sub] mlp    macro-F1 0.795 [0.789, 0.802] (H 0.84, E 0.75, C 0.79) acc 0.800; 8s
+[probe_sub] svm    macro-F1 0.766 [0.759, 0.774] (H 0.82, E 0.70, C 0.78) acc 0.779; 108s
+[dm_H] rows edited; max leftover coordinate along the removed plane on held-out rows = 1.53e-05
+[dm_H] linear macro-F1 0.682 [0.673, 0.690] (H 0.60, E 0.73, C 0.72) acc 0.682; 1s
+[dm_H] mlp    macro-F1 0.804 [0.798, 0.810] (H 0.85, E 0.77, C 0.79) acc 0.808; 8s
+[dm_H] svm    macro-F1 0.804 [0.797, 0.810] (H 0.84, E 0.77, C 0.80) acc 0.809; 115s
+[probe_H] rows edited; max leftover coordinate along the removed plane on held-out rows = 5.25e-06
+[probe_H] linear macro-F1 0.756 [0.749, 0.763] (H 0.77, E 0.71, C 0.78) acc 0.765; 1s
+[probe_H] mlp    macro-F1 0.801 [0.794, 0.807] (H 0.84, E 0.76, C 0.80) acc 0.805; 8s
+[probe_H] svm    macro-F1 0.792 [0.785, 0.799] (H 0.83, E 0.75, C 0.80) acc 0.799; 95s
+done in 695s
