@@ -1,0 +1,43 @@
+L* = 29; sweep layers [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]; controls at [5, 10, 15, 20, 25, 30]; planes fit in 13s
+W1106 15:31:47.611000 33009 torch/distributed/elastic/multiprocessing/redirects.py:35] NOTE: Redirects are currently not supported in MacOs.
+
+Loading weights:   0%|          | 0/491 [00:00<?, ?it/s]
+Loading weights: 100%|██████████| 491/491 [00:00<00:00, 9861.63it/s]
+baseline read in 118s; top-1 0.392
+        dm_sub@1: dPLL -0.0974 [H -0.086 E -0.149 C -0.081] top-1 0.363; 218s
+        dm_sub@2: dPLL -0.0168 [H -0.012 E -0.031 C -0.014] top-1 0.387; 321s
+        dm_sub@3: dPLL -0.0112 [H -0.008 E -0.021 C -0.009] top-1 0.389; 427s
+        dm_sub@4: dPLL -0.0092 [H -0.007 E -0.018 C -0.007] top-1 0.389; 539s
+        dm_sub@5: dPLL -0.0082 [H -0.006 E -0.016 C -0.006] top-1 0.390; 666s
+    random_sub@5: dPLL -0.0001 [H -0.000 E -0.000 C -0.000] top-1 0.392; 812s
+        dm_sub@6: dPLL -0.0059 [H -0.005 E -0.011 C -0.004] top-1 0.390; 949s
+        dm_sub@7: dPLL -0.0062 [H -0.004 E -0.013 C -0.005] top-1 0.391; 1053s
+        dm_sub@8: dPLL -0.0077 [H -0.006 E -0.013 C -0.006] top-1 0.390; 1158s
+        dm_sub@9: dPLL -0.0093 [H -0.007 E -0.014 C -0.008] top-1 0.389; 1262s
+       dm_sub@10: dPLL -0.0107 [H -0.009 E -0.016 C -0.009] top-1 0.389; 1366s
+   random_sub@10: dPLL -0.0002 [H -0.000 E -0.000 C -0.000] top-1 0.392; 1469s
+       dm_sub@11: dPLL -0.0083 [H -0.008 E -0.009 C -0.008] top-1 0.390; 1573s
+       dm_sub@12: dPLL -0.0132 [H -0.013 E -0.015 C -0.013] top-1 0.388; 1677s
+       dm_sub@13: dPLL -0.0139 [H -0.014 E -0.016 C -0.013] top-1 0.388; 1784s
+       dm_sub@14: dPLL -0.0224 [H -0.021 E -0.028 C -0.020] top-1 0.386; 1893s
+       dm_sub@15: dPLL -0.0195 [H -0.020 E -0.023 C -0.017] top-1 0.387; 1992s
+   random_sub@15: dPLL -0.0007 [H -0.001 E -0.001 C -0.001] top-1 0.391; 2090s
+       dm_sub@16: dPLL -0.0288 [H -0.029 E -0.035 C -0.026] top-1 0.384; 2192s
+       dm_sub@17: dPLL -0.0229 [H -0.021 E -0.030 C -0.021] top-1 0.384; 2294s
+       dm_sub@18: dPLL -0.0287 [H -0.027 E -0.036 C -0.026] top-1 0.383; 2397s
+       dm_sub@19: dPLL -0.0330 [H -0.032 E -0.043 C -0.029] top-1 0.381; 2498s
+       dm_sub@20: dPLL -0.0363 [H -0.036 E -0.046 C -0.032] top-1 0.382; 2602s
+   random_sub@20: dPLL -0.0017 [H -0.002 E -0.002 C -0.002] top-1 0.391; 2710s
+       dm_sub@21: dPLL -0.0386 [H -0.042 E -0.048 C -0.031] top-1 0.381; 2815s
+       dm_sub@22: dPLL -0.0408 [H -0.044 E -0.053 C -0.032] top-1 0.380; 2915s
+       dm_sub@23: dPLL -0.0539 [H -0.058 E -0.073 C -0.041] top-1 0.377; 3018s
+       dm_sub@24: dPLL -0.0411 [H -0.038 E -0.062 C -0.034] top-1 0.379; 3117s
+       dm_sub@25: dPLL -0.0395 [H -0.036 E -0.059 C -0.033] top-1 0.380; 3220s
+   random_sub@25: dPLL -0.0013 [H -0.001 E -0.002 C -0.001] top-1 0.391; 3329s
+       dm_sub@26: dPLL -0.0402 [H -0.039 E -0.060 C -0.031] top-1 0.381; 3436s
+       dm_sub@27: dPLL -0.0464 [H -0.052 E -0.065 C -0.033] top-1 0.380; 3545s
+       dm_sub@28: dPLL -0.0491 [H -0.061 E -0.056 C -0.036] top-1 0.380; 3652s
+       dm_sub@29: dPLL -0.0620 [H -0.074 E -0.049 C -0.059] top-1 0.379; 3756s
+       dm_sub@30: dPLL -0.1463 [H -0.124 E -0.076 C -0.199] top-1 0.364; 3864s
+   random_sub@30: dPLL -0.0001 [H -0.000 E -0.000 C -0.000] top-1 0.392; 3971s
+done in 3971s -> results/p9/esm2_t30_150M

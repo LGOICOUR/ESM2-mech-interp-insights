@@ -1,0 +1,14 @@
+L* = 29; sweep layers [1, 29, 30]; controls at [30]; planes fit in 2s
+W1106 16:40:21.335000 35517 torch/distributed/elastic/multiprocessing/redirects.py:35] NOTE: Redirects are currently not supported in MacOs.
+
+Loading weights:   0%|          | 0/491 [00:00<?, ?it/s]
+Loading weights: 100%|██████████| 491/491 [00:00<00:00, 10038.18it/s]
+baseline read in 135s; top-1 0.392
+        dm_sub@1: dPLL -0.0974 [H -0.086 E -0.149 C -0.081] top-1 0.363; 265s
+  dm_strat_sub@1: dPLL -0.0006 [H -0.000 E -0.001 C -0.001] top-1 0.392; 434s
+       dm_sub@29: dPLL -0.0620 [H -0.074 E -0.049 C -0.059] top-1 0.379; 599s
+ dm_strat_sub@29: dPLL -0.0488 [H -0.050 E -0.027 C -0.059] top-1 0.381; 776s
+       dm_sub@30: dPLL -0.1463 [H -0.124 E -0.076 C -0.199] top-1 0.364; 943s
+ dm_strat_sub@30: dPLL -0.0756 [H -0.062 E -0.014 C -0.117] top-1 0.377; 1109s
+   random_sub@30: dPLL -0.0001 [H -0.000 E -0.000 C -0.000] top-1 0.392; 1240s
+done in 1240s -> results/p9/esm2_t30_150M_strat
