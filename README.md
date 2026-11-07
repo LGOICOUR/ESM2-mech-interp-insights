@@ -287,6 +287,64 @@ and variance-matched controls. Those are increments in rigor and framing, not
 a new phenomenon. The search read abstracts and snippets only; a closer
 preprint could exist.
 
+## After the plane: what a linear erasure leaves, and what the model uses (P6-P10)
+
+Added 2026-11-05 to 2026-11-06. Each block is one question, with its control. Numbers are
+macro-F1 on held-out chains or the change in masked log-likelihood of the true residue
+(nats; 0.06 nats is about 6%), 95% CIs resampling chains. Full tables in each `results/pN/`
+folder; the decision log has the pre-registered guesses.
+
+**P6, is the concept gone, or only its linear part?** Post hoc on the P2 recording: the fold's
+class-mean plane is projected out of layer 29, then readers are refit on the edited rows
+(chain-grouped cv). Linear reads 0.22 (floor 0.20). A small MLP reads 0.79, an RBF SVM 0.78,
+QDA (one mean and one full covariance per class) **0.81**, the unedited ceiling. A
+squares-only logistic reader (axis-aligned ellipsoids, no cross terms) reads 0.56. So after a
+perfect linear erasure the class survives entirely in the *shape* of each class's cloud
+(its covariance), with the tilt of the ellipsoids carrying most of it. Random plane: 0.81
+for every reader. `results/p6/`.
+
+**P7, does the next layer rebuild from the row or from its neighbours?** The plane is removed
+at layer 29 at a random fraction p of each chain's positions during the forward pass. A
+probe refit on the ablated rows at layer 30 reads 0.56 when every position is ablated,
+0.66 when both +-1 neighbours are intact, 0.69 when all +-3 are intact; never back to 0.81.
+Layer 29 at ablated rows stays 0.22-0.26 whatever the neighbours. Model loss at ablated
+rows: -0.040 with intact neighbours vs -0.062 with all ablated; intact rows beside ablated
+ones lose -0.013. Random plane: 0.81 and 0.000 everywhere. `results/p7/`.
+
+**P8, erase the shape too: does the model use it?** Quadratic erasure as a forward-pass
+intervention: after the plane, each class's cloud is mapped onto the pooled covariance by
+the optimal-transport (Bures) map between Gaussians, the same construction as QLEACE
+(Belrose et al. 2025), applied here at labelled positions with the true label (unlabelled
+positions get the plane only). Control: the same maps applied with shuffled labels (moves
+rows further, erases nothing). Model loss: plane **-0.063 (6%)**, plane + shape **-0.103
+(10%)**, shuffled **-0.081 (8%)**; by class the shape costs helix about 4 points over its
+control, strand 2.5, coil **0**. Layer-30 linear rebuild: 0.59 after the plane, 0.49 after
+plane + shape, 0.62 shuffled, so the next layer reads the shape a little. Two caveats that
+anyone copying this will hit. (1) Per-fold second-order maps make a cross-validated QDA
+score *below the floor* (0.03): a fold's test rows are mapped by maps fit without them,
+its training rows by maps whose fit set contained the test fold, and the covariance
+sampling noise is anti-correlated between the two. `--disjoint-fit` fits the maps once on
+folds 0-2 and reads on folds 3-4. (2) Finite-sample erasure leaves a consistent fingerprint
+on new chains: one plane fit on 60% of chains leaves a linear reader at 0.41 on the other
+40% (0.22 under per-fold cv), and the quadratic maps leave QDA at 0.76 (not 0.20). The
+model, trained on UniRef, cannot read that fingerprint; refit readers can. The model-loss
+numbers replicate across both designs. `results/p8/` and `results/p8/*_disjoint/`.
+
+**P9, where is the plane used?** The plane removed at one layer at a time, model loss only,
+beside P3's decodability at that layer. Cost about 1% through layers 2-13 (where a probe
+already reads 0.70), rising to 6% at layer 29 and **14% at layer 30**, where nothing
+downstream can rebuild it (coil 20%). Composition control (the within-amino-acid class-mean
+plane from P5, which carries no amino-acid-identity difference by construction): layer 1's
+10% is composition entirely; at 29 the structure-proper cost is 4.9%; at 30 it is **7.6%**
+(coil 11.7%, strand 1.4%). Random planes cost nothing at any layer.
+`results/p9/` and `results/p9/*_strat/`, figure `results/p9/esm2_t30_150M/sweep.png`.
+
+**P10, sequential multi-layer erasure (running at the time of writing).** P4's band condition
+fit every plane on the unedited recording; after the planes below are removed the class
+means at layer 30 move, and the pre-fit plane there is stale (refit reader 0.70 in P4).
+P10 fits each layer's plane on activations already edited by the planes below it, bands
+29-30, 26-30, 20-30, with the stale and random versions beside it. `results/p10/`.
+
 ## Caveats, what did not work first
 
 - **The effect sizes are small.** The strongest single-direction effect at the
@@ -381,6 +439,13 @@ uv run python scripts/p4_ablate.py --kinds probe_H_perp probe_E_perp random dm_H
 uv run python scripts/p4_ablate.py --kinds random_vm_dmH random_vm_dmE random_vm_dmEperp --scopes single band --tag vm   # ~16 min; variance-matched random controls, into results/p4/esm2_t30_150M_vm/
 uv run python scripts/check_variance.py --out esm2_t30_150M_vm   # variance share, class gap and top-eigenvector loading of every direction at layer 29, ~1 min
 uv run python scripts/p5_steer.py && uv run python scripts/p5_figure.py    # ~55 min; the steering test (6 directions × 4 doses + baseline), into results/p5/esm2_t30_150M/
+uv run python scripts/p6_nonlinear_refit.py                     # post hoc nonlinear readers after linear erasure, ~15 min; --readers linear quad qda --tag quad for the squares-only / QDA pair
+uv run python scripts/p7_sparse_ablate.py                       # ~15 min; plane removed at a random fraction of positions, into results/p7/
+uv run python scripts/p8_quadratic_erase.py                     # ~10 min; plane + covariance matching at L*, per-fold maps (model loss; its cv QDA is artefact-affected, see P8)
+uv run python scripts/p8_quadratic_erase.py --disjoint-fit      # ~4 min; maps fit on folds 0-2, read on 3-4: the clean decodability numbers
+uv run python scripts/p9_layer_sweep.py                         # ~65 min; the plane at one layer at a time, 30 layers + random controls
+uv run python scripts/p9_layer_sweep.py --layers 1 29 30 --kinds dm_sub dm_strat_sub --control-every 1000 --tag strat   # ~20 min; composition control
+uv run python scripts/p10_sequential_erase.py --bands 29-30 26-30 20-30   # ~2 h; sequential vs stale vs random multi-layer erasure
 ```
 
 Every script prints its own checks and refuses to continue if one fails
@@ -412,12 +477,14 @@ src/esm2_probe/   data (labels, de-duplication, one-hot baselines), reader (hook
                   probe (grouped CV, CIs, directions), ablate (projection hook),
                   steer (additive hook, within-amino-acid directions, propensity scoring), baselines
 scripts/          p1_data -> p2_read -> p3_probe (+ p3_figure) -> p4_ablate (+ p4_figure) -> p5_steer (+ p5_figure);
+                  then p6_nonlinear_refit, p7_sparse_ablate, p8_quadratic_erase, p9_layer_sweep, p10_sequential_erase;
                   each prints its checks; check_masking and check_variance are diagnostics
 tests/            offline tests on synthetic data and a fake model (no network)
 results/          p1 proteins + config; p2 index + summary (activations are not committed);
                   p3 metrics, layer curves, figure; p4 metrics, ablation table, figure (per-residue read-outs are not committed);
                   p4 <recording>_perp and _vm: the remainder follow-up and the variance-matched controls, with the variance check;
-                  p5 metrics, steering tables, dose-response figure
+                  p5 metrics, steering tables, dose-response figure;
+                  p6-p10 metrics, summary tables and per-residue read-outs (p9 also the by-layer figure)
 DECISIONS.md      dated log of every choice, with the ablation's expectations written before it ran
 ```
 
@@ -449,10 +516,19 @@ paragraph in that block came from an abstract-level literature check the
 agent ran the same day at Luis's request, after saying in conversation that
 it did not know of a published version; the check found several.
 
-**Luis has not yet reviewed the result.** Until he says otherwise, treat the
-numbers as an agent's unreviewed run of an honest pipeline: reproducible from
-this repo, but not yet checked by a person. The write-up voice follows his
-other repos; the prose here is the agent's.
+Between 2026-11-02 and 2026-11-06 Luis reviewed every phase's results in
+conversation, restating each number and its meaning, and set the direction of
+the second half of the project: the sparse-position variant (P7), the
+quadratic erasure (P8, which began as his question whether the QDA ellipsoid
+could be used to erase the cloud's shape), the hypothesis that the next layer
+recomputes structure from amino-acid identities (tested and partly refuted by
+P8), and the layer sweep (P9, from his proposal to remove the plane where
+nothing downstream can rebuild it). He pre-registered a guess before each
+result was shown. The agent wrote and ran all code, ran the literature checks,
+found and fixed the per-fold artefact in P8's second-order readers, found the
+stale-plane flaw in P4's band condition that P10 corrects, and added the
+composition control to P9. Luis has reviewed the results and the reasoning,
+not the code; the write-up prose remains the agent's.
 
 ## Acknowledgements
 

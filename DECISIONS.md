@@ -661,3 +661,51 @@ README's sufficiency block now carries a related-work paragraph with these
 citations. Limits: snippets and abstracts only, so a closer preprint could
 exist; the venue listing for Huang et al. was not verified. Luis has not
 reviewed this.
+
+## 2026-11-05 — P6: nonlinear readers after linear erasure (Claude, run post hoc; Luis chose to run it)
+
+Question: after the class-mean plane is projected out at layer 29, is the class gone or only
+its linear part? Readers refit on the edited held-out rows: linear, MLP, RBF SVM; then (2026-11-06,
+`_quad`) a squares-only logistic reader and QDA. Expectation before the run: nonlinear readers
+recover part of it. Outcome: linear 0.22, MLP 0.79, SVM 0.78, QDA 0.81 (= ceiling), squares-only 0.56.
+The class survives entirely in each cloud's covariance, mostly in its tilt. Random plane: 0.81 for all.
+
+## 2026-11-06 — P7: sparse-position ablation (Claude designed and ran; Luis chose to run it in the background)
+
+Question: does layer 30's 0.56 rebuild come from the row itself or from neighbouring rows? Plane
+removed at a random fraction p of positions. Luis's guess before the numbers: the rebuild uses
+neighbours. Outcome: 0.56 from the row alone, 0.66 with both +-1 intact, 0.69 with all +-3 intact,
+never 0.81; model loss at ablated rows -0.040 with intact neighbours vs -0.062 all ablated. Luis
+noticed 0.56 ~ the +-3 one-hot window baseline 0.57 and proposed that layer 30 recomputes structure
+from amino-acid identities; P8 tests that.
+
+## 2026-11-06 — P8: quadratic erasure, pre-registered (Luis asked whether the QDA ellipsoid could be used to erase the shape; that is the experiment)
+
+Design: after the plane, map each class's covariance onto the pooled covariance (Bures map,
+as in QLEACE) during the forward pass at labelled positions; control = same maps with shuffled
+labels. Luis's guess, typed before any number was shown: "much more than 6%", on the reasoning
+that QDA reads the full concept after the plane while the model lost only 6%, so what remains
+must be large and little-overlapping. Outcome: plane -0.063, plane + shape -0.103, shuffled -0.081;
+shape-specific cost ~2 points, coil 0. Guess wrong in the informative direction: the model uses
+the shape less than the plane. Artefact found after the run: per-fold maps put cv QDA at 0.03,
+below the floor (anti-correlated covariance noise between a fold's test and training rows);
+`--disjoint-fit` added, model-loss numbers replicate (-0.063 / -0.103 / -0.081). Finite-sample
+fingerprint: linear 0.41 after the plane on new chains with one plane; QDA 0.76 after the maps.
+
+## 2026-11-06 — P9: layer sweep (Luis proposed removing the plane where nothing can rebuild it; Claude ran all layers)
+
+No guess registered (reported directly under time pressure, said so). Outcome: ~1% through
+layers 2-13, 6% at 29, 14% at 30, 10% at layer 1. Composition control added by Claude after seeing
+layer 1 (probe F1 there = identity baseline): within-amino-acid plane costs 0% at layer 1, 4.9% at 29,
+7.6% at 30. Layer 1's cost is amino-acid identity; half of layer 30's is.
+
+## 2026-11-06 — P10: sequential multi-layer erasure, pre-registered (Claude found the stale-plane flaw in P4's band; Luis chose to build it)
+
+P4's band (26-30) fit every plane on the unedited recording; the refit reader at 30 still read 0.70
+because the class means at 30 move once 26-29 are edited. P10 fits each plane on activations
+already edited below it. Expectations written before the run: (1) sequential leaves the layer-30
+linear refit near the floor where stale left 0.70; (2) sequential costs *less* than stale for the
+same band, because the stale plane at 30 removes directions that are no longer the class-mean
+plane (on the 12-chain check: -0.140 vs -0.165 for 29-30); (3) the 20-30 band costs more than
+29-30 and more than the 14% of layer 30 alone, and QDA at 30 stays well above the floor (the
+shape is untouched). Random bands cost ~0.
