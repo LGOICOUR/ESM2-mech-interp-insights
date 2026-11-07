@@ -735,3 +735,15 @@ linear refit does not reach the floor, because the within-amino-acid plane is on
 aligned with the full class-mean plane (P5), so a reader keeps part of the composition-aligned
 leftover, guess 0.35-0.45; (4) QDA at 30 stays above 0.7. If (2) fails and the strat bands cost
 nearly as much as the plain ones, the wide-band cost is structure-proper after all.
+
+## 2026-11-06 — P10 composition control ran (Claude): predictions against the table
+
+Within-amino-acid sequential: 29-30 **-0.058** (predicted ~-0.076: lower, and below the
+single-layer within-amino-acid plane at 30, -0.076); 26-30 **-0.128** (predicted -0.15 to
+-0.20: lower); 20-30 **-0.405**, top-1 28.2% (predicted ~-0.3 and top-1 > 30%: cost higher,
+top-1 lower). (1) roughly right; (2) **right** in direction, the wide bands fall to about
+40-45% of the plain sequential cost, so identity is a bit more than half of the plain
+numbers and structure-proper remains 6 / 12 / 33%; (3) **right**: layer-30 linear refit
+0.41 / 0.38 / 0.39; (4) **right**: QDA 0.81 / 0.78 / 0.74. The wide-band structure-proper
+cost is real: keeping structure erased across layers 20-30 costs a third of the model's
+likelihood. Luis has not reviewed this entry.

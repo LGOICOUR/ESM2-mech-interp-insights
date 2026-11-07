@@ -348,11 +348,13 @@ floor; stale 0.54-0.74). Model loss, sequential vs stale vs random: band 29-30 *
 -0.160 / -0.001, the same as layer 30 alone, so removing at 29 adds nothing once 30 is
 removed; band 26-30 **-0.334 (28%)** / -0.205 / -0.004; band 20-30 **-0.713 (51%, top-1
 39% -> 19%)** / -0.327 / -0.013. QDA at layer 30 still reads 0.74-0.81 after every band:
-the shape is never touched. Read the wide bands with P9's composition result in mind: the
-class-mean plane carries amino-acid identity as well as structure (half of layer 30's
-single-layer cost), and keeping it erased at eleven consecutive layers removes that too;
-the within-amino-acid sequential version is the control that would split the two, and
-has not been run. `results/p10/`.
+the shape is never touched. The composition control (the same bands with the within-amino-acid class-mean plane,
+fit sequentially; `_strat`) splits structure from amino-acid identity: **-0.058 (6%)** for
+29-30, **-0.128 (12%)** for 26-30, **-0.405 (33%, top-1 28%)** for 20-30, so roughly half
+of each plain sequential cost is identity and the rest is structure that the model keeps
+re-deriving layer after layer. That plane is only ~0.9 aligned with the full class-mean
+plane, so a linear reader at 30 keeps 0.38-0.41 after it; QDA stays 0.74-0.81.
+`results/p10/`.
 
 ## Caveats, what did not work first
 
