@@ -723,3 +723,15 @@ Unexpected: sequential 29-30 equals layer 30 alone exactly (-0.146 both), so the
 29 is entirely mediated by what reaches the head at 30. Random bands: -0.001 / -0.004 / -0.013.
 Open: the within-amino-acid sequential run, to split structure from composition in the wide
 bands. Luis has not reviewed this entry.
+
+## 2026-11-06 — P10 composition control: pre-registered (Claude, before the run; Luis chose to run it)
+
+The within-amino-acid class-mean plane fit sequentially on the same three bands (`--modes
+sequential_strat --tag strat`). Expectations: (1) band 29-30 costs about what the single-layer
+within-amino-acid plane cost at 30 in P9, -0.076, i.e. roughly half the plain sequential -0.146;
+(2) the wide bands fall well below the plain sequential numbers, 26-30 somewhere near -0.15 to
+-0.20 (vs -0.334) and 20-30 near -0.3 (vs -0.713), and top-1 stays above 30%; (3) the layer-30
+linear refit does not reach the floor, because the within-amino-acid plane is only ~0.9-0.96
+aligned with the full class-mean plane (P5), so a reader keeps part of the composition-aligned
+leftover, guess 0.35-0.45; (4) QDA at 30 stays above 0.7. If (2) fails and the strat bands cost
+nearly as much as the plain ones, the wide-band cost is structure-proper after all.

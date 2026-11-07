@@ -12,7 +12,9 @@ on activations already edited by the planes below it:
 
 Per fold, planes are fit on the same 40k-row subsample as P3/P4. Conditions per
 band: sequential (this), stale (P4's way, all planes fit on the recording) and a
-random rank-2 plane at every layer of the band. Read-outs: the model's own
+random rank-2 plane at every layer of the band; `sequential_strat` is the composition
+control, the within-amino-acid class-mean plane (no amino-acid-identity difference by
+construction, as in P5/P9) fit sequentially the same way. Read-outs: the model's own
 masked output (ΔPLL by class, top-1) and decodability at the last layer after the
 edit (linear refit and QDA refit, chain-grouped cv), to check that the plane is
 gone everywhere it was removed.
@@ -22,6 +24,7 @@ Outputs in results/p10/<recording>[_limitN][_<tag>]/: metrics.json, summary.md, 
 Usage:
     uv run python scripts/p10_sequential_erase.py --bands 29-30 26-30 20-30
     uv run python scripts/p10_sequential_erase.py --limit 12 --bands 29-30 --n-boot 20 --tag check
+    uv run python scripts/p10_sequential_erase.py --modes sequential_strat --tag strat   # composition control
 """
 
 from __future__ import annotations
@@ -44,6 +47,7 @@ from esm2_probe.data import CLASSES, read_jsonl  # noqa: E402
 from esm2_probe.probe import (cv_probe, diff_in_means, grouped_bootstrap_ci, grouped_bootstrap_mean,  # noqa: E402
                               grouped_folds, metrics, subsample)
 from esm2_probe.reader import Recorder, encode, load_model, masked_readout  # noqa: E402
+from esm2_probe.steer import stratified_diff_in_means  # noqa: E402
 
 
 def parse_band(s: str) -> list[int]:
@@ -68,6 +72,8 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--recording", default="esm2_t30_150M")
     ap.add_argument("--bands", nargs="+", default=["29-30", "26-30", "20-30"], help="inclusive layer ranges, e.g. 26-30")
+    ap.add_argument("--modes", nargs="+", default=["sequential", "stale", "random"],
+                    choices=["sequential", "stale", "random", "sequential_strat"])
     ap.add_argument("--k", type=int, default=8)
     ap.add_argument("--n-train", type=int, default=40000)
     ap.add_argument("--n-boot", type=int, default=300)
@@ -89,7 +95,7 @@ def main() -> None:
     bands = {b: parse_band(b) for b in args.bands}
     assert all(1 <= L <= n_layers for band in bands.values() for L in band)
 
-    y_all, g_all = tbl["label"].astype(int), tbl["protein_idx"]
+    y_all, g_all, aa_all = tbl["label"].astype(int), tbl["protein_idx"], tbl["aa"].astype(int)
     folds_all = grouped_folds(g_all, 5, args.seed)
     starts = np.zeros(len(proteins) + 1, dtype=np.int64)
     np.cumsum(np.bincount(g_all, minlength=len(proteins)), out=starts[1:])
@@ -129,13 +135,18 @@ def main() -> None:
                 h.remove()
         return out
 
-    def plane(X, yy):
+    def plane(X, yy, aa=None):
+        """Class-mean plane (rank 2) and the mean; with `aa`, the within-amino-acid class-mean plane."""
         dm, mu = diff_in_means(X, yy)
-        return orthonormal_rows(dm[:2]), mu
+        if aa is None:
+            return orthonormal_rows(dm[:2]), mu
+        st = np.stack([stratified_diff_in_means(X, yy, aa, c)[0] for c in (0, 1)])
+        return orthonormal_rows(st), mu
 
     def fit_band(band, mode):
-        """Per fold: {layer: (U, mu)} for the whole band. mode: sequential | stale | random."""
+        """Per fold: {layer: (U, mu)} for the whole band. mode: sequential | stale | random | sequential_strat."""
         dirs = {}
+        strat = mode == "sequential_strat"
         for f in range(5):
             tr = np.where(folds_all != f)[0]
             fit_idx = subsample(tr, args.n_train, args.seed + 100 + f)
@@ -150,16 +161,17 @@ def main() -> None:
                     dirs[f][L] = plane(np.asarray(acts[L][fit_idx], dtype=np.float32), y_all[fit_idx])
                 continue
             # sequential: the first plane from the recording, each next one from edited activations
-            dirs[f][band[0]] = plane(np.asarray(acts[band[0]][fit_idx], dtype=np.float32), y_all[fit_idx])
+            aa_fit = aa_all[fit_idx] if strat else None
+            dirs[f][band[0]] = plane(np.asarray(acts[band[0]][fit_idx], dtype=np.float32), y_all[fit_idx], aa_fit)
             train_chains = [i for i in all_ids if fold_of_chain[i] != f]
             for L in band[1:]:
                 rec = record_layer(train_chains, dirs[f], L)
                 X_all = np.zeros((n_rows_all, width), dtype=np.float32)
                 for i in train_chains:
                     X_all[starts[i]:starts[i + 1]] = rec[i]
-                dirs[f][L] = plane(X_all[fit_idx], y_all[fit_idx])
+                dirs[f][L] = plane(X_all[fit_idx], y_all[fit_idx], aa_fit)
                 # how far the stale plane at L is from the sequential one: principal angles' cosines
-                U_stale, _ = plane(np.asarray(acts[L][fit_idx], dtype=np.float32), y_all[fit_idx])
+                U_stale, _ = plane(np.asarray(acts[L][fit_idx], dtype=np.float32), y_all[fit_idx], aa_fit)
                 s = np.linalg.svd(dirs[f][L][0] @ U_stale.T, compute_uv=False)
                 print(f"  band {band[0]}-{band[-1]} fold {f} layer {L}: plane fit on edited rows; "
                       f"cos principal angles vs stale plane {np.round(s, 3).tolist()}; {time.time() - t0:.0f}s", flush=True)
@@ -217,7 +229,7 @@ def main() -> None:
           f"layer {n_layers} refit F1 {results['baseline']['decodability']['refit_probe']['macro_f1']:.3f}", flush=True)
 
     for b, band in bands.items():
-        for mode in ("sequential", "stale", "random"):
+        for mode in args.modes:
             name = f"{mode}@{b}"
             dirs = fit_band(band, mode)
             logp, top1, A = run_condition(dirs)
@@ -245,7 +257,7 @@ def main() -> None:
     lines = [f"# P10 sequential multi-layer erasure, `{args.recording}`: {len(chain_ids)} held-out chains, {len(y)} labelled residues; L* = {L_star}", "",
              "Class-mean plane (rank 2) removed at every layer of a band. `sequential`: each plane fit on activations already "
              "edited by the planes below it. `stale`: every plane fit on the unedited recording (P4's band). `random`: a random "
-             "rank-2 plane at each layer. ΔPLL in nats, mean [95% CI, chains resampled]; decodability = readers refit on the "
+             "rank-2 plane at each layer. `sequential_strat`: the within-amino-acid class-mean plane (composition control), fit sequentially. ΔPLL in nats, mean [95% CI, chains resampled]; decodability = readers refit on the "
              f"edited layer-{n_layers} rows (chain-grouped cv), macro-F1.", "",
              f"Baseline top-1 {b0['top1']:.1%}; layer {n_layers} refit linear {dec(b0['decodability'])}, QDA {b0['decodability']['qda']['macro_f1']:.3f}.", "",
              f"| condition | layers | ΔPLL all | helix | strand | coil | top-1 | layer {n_layers} linear refit | layer {n_layers} QDA |",
