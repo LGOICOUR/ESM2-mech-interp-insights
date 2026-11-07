@@ -709,3 +709,17 @@ same band, because the stale plane at 30 removes directions that are no longer t
 plane (on the 12-chain check: -0.140 vs -0.165 for 29-30); (3) the 20-30 band costs more than
 29-30 and more than the 14% of layer 30 alone, and QDA at 30 stays well above the floor (the
 shape is untouched). Random bands cost ~0.
+
+## 2026-11-06 — P10 ran (Claude): predictions against the table
+
+(1) Sequential leaves the layer-30 linear refit at the floor: **yes**, 0.23 for every band
+(stale 0.54 / 0.72 / 0.74). (2) Sequential costs less than stale: **yes for 29-30** (-0.146 vs
+-0.160), **no for wider bands**: 26-30 -0.334 vs -0.205, 20-30 -0.713 vs -0.327. The stale
+planes miss the moved class means and so remove less; the sequential planes keep catching what
+the model re-derives at each layer, plus the amino-acid-identity component of each class-mean
+plane (P9's composition control: half of layer 30's cost). (3) 20-30 costs more than 29-30 and
+than layer 30 alone: **yes**, by a large margin (51% vs 14%); QDA at 30 stays 0.74-0.81: **yes**.
+Unexpected: sequential 29-30 equals layer 30 alone exactly (-0.146 both), so the plane's cost at
+29 is entirely mediated by what reaches the head at 30. Random bands: -0.001 / -0.004 / -0.013.
+Open: the within-amino-acid sequential run, to split structure from composition in the wide
+bands. Luis has not reviewed this entry.

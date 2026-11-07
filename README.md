@@ -339,11 +339,20 @@ plane from P5, which carries no amino-acid-identity difference by construction):
 (coil 11.7%, strand 1.4%). Random planes cost nothing at any layer.
 `results/p9/` and `results/p9/*_strat/`, figure `results/p9/esm2_t30_150M/sweep.png`.
 
-**P10, sequential multi-layer erasure (running at the time of writing).** P4's band condition
-fit every plane on the unedited recording; after the planes below are removed the class
-means at layer 30 move, and the pre-fit plane there is stale (refit reader 0.70 in P4).
-P10 fits each layer's plane on activations already edited by the planes below it, bands
-29-30, 26-30, 20-30, with the stale and random versions beside it. `results/p10/`.
+**P10, sequential multi-layer erasure.** P4's band condition fit every plane on the
+unedited recording; once the planes below are removed the class means at the next layer
+move, and a pre-fit plane there is stale (P4's band left a refit reader at 0.70 at layer 30).
+P10 fits each layer's plane on activations already edited by the planes below it, so the
+plane is gone at every layer of the band (layer-30 linear refit 0.23 for every band, the
+floor; stale 0.54-0.74). Model loss, sequential vs stale vs random: band 29-30 **-0.146** /
+-0.160 / -0.001, the same as layer 30 alone, so removing at 29 adds nothing once 30 is
+removed; band 26-30 **-0.334 (28%)** / -0.205 / -0.004; band 20-30 **-0.713 (51%, top-1
+39% -> 19%)** / -0.327 / -0.013. QDA at layer 30 still reads 0.74-0.81 after every band:
+the shape is never touched. Read the wide bands with P9's composition result in mind: the
+class-mean plane carries amino-acid identity as well as structure (half of layer 30's
+single-layer cost), and keeping it erased at eleven consecutive layers removes that too;
+the within-amino-acid sequential version is the control that would split the two, and
+has not been run. `results/p10/`.
 
 ## Caveats, what did not work first
 

@@ -1,0 +1,90 @@
+W1106 16:38:14.203000 35401 torch/distributed/elastic/multiprocessing/redirects.py:35] NOTE: Redirects are currently not supported in MacOs.
+
+Loading weights:   0%|          | 0/491 [00:00<?, ?it/s]
+Loading weights: 100%|██████████| 491/491 [00:00<00:00, 9863.00it/s]
+baseline read in 163s; top-1 0.392; layer 30 refit F1 0.812
+  band 29-30 fold 0 layer 30: plane fit on edited rows; cos principal angles vs stale plane [0.5220000147819519, 0.41499999165534973]; 213s
+  band 29-30 fold 1 layer 30: plane fit on edited rows; cos principal angles vs stale plane [0.5389999747276306, 0.375]; 253s
+  band 29-30 fold 2 layer 30: plane fit on edited rows; cos principal angles vs stale plane [0.5379999876022339, 0.4000000059604645]; 294s
+  band 29-30 fold 3 layer 30: plane fit on edited rows; cos principal angles vs stale plane [0.5519999861717224, 0.4020000100135803]; 338s
+  band 29-30 fold 4 layer 30: plane fit on edited rows; cos principal angles vs stale plane [0.5640000104904175, 0.4009999930858612]; 379s
+  sequential@29-30: dPLL -0.1458 [H -0.127 E -0.084 C -0.192] top-1 0.360; layer 30 refit F1 0.228, QDA 0.805; 657s
+       stale@29-30: dPLL -0.1604 [H -0.158 E -0.070 C -0.208] top-1 0.357; layer 30 refit F1 0.535, QDA 0.806; 949s
+      random@29-30: dPLL -0.0007 [H -0.001 E -0.001 C -0.001] top-1 0.392; layer 30 refit F1 0.811, QDA 0.807; 1232s
+  band 26-30 fold 0 layer 27: plane fit on edited rows; cos principal angles vs stale plane [0.6100000143051147, 0.5550000071525574]; 1280s
+  band 26-30 fold 0 layer 28: plane fit on edited rows; cos principal angles vs stale plane [0.5630000233650208, 0.5059999823570251]; 1325s
+  band 26-30 fold 0 layer 29: plane fit on edited rows; cos principal angles vs stale plane [0.5699999928474426, 0.4729999899864197]; 1367s
+  band 26-30 fold 0 layer 30: plane fit on edited rows; cos principal angles vs stale plane [0.5809999704360962, 0.45100000500679016]; 1383s
+  band 26-30 fold 1 layer 27: plane fit on edited rows; cos principal angles vs stale plane [0.6100000143051147, 0.5460000038146973]; 1398s
+  band 26-30 fold 1 layer 28: plane fit on edited rows; cos principal angles vs stale plane [0.5559999942779541, 0.4909999966621399]; 1413s
+  band 26-30 fold 1 layer 29: plane fit on edited rows; cos principal angles vs stale plane [0.5740000009536743, 0.46799999475479126]; 1429s
+  band 26-30 fold 1 layer 30: plane fit on edited rows; cos principal angles vs stale plane [0.5640000104904175, 0.42800000309944153]; 1444s
+  band 26-30 fold 2 layer 27: plane fit on edited rows; cos principal angles vs stale plane [0.6169999837875366, 0.5490000247955322]; 1459s
+  band 26-30 fold 2 layer 28: plane fit on edited rows; cos principal angles vs stale plane [0.5609999895095825, 0.5059999823570251]; 1474s
+  band 26-30 fold 2 layer 29: plane fit on edited rows; cos principal angles vs stale plane [0.5699999928474426, 0.4779999852180481]; 1490s
+  band 26-30 fold 2 layer 30: plane fit on edited rows; cos principal angles vs stale plane [0.5889999866485596, 0.42899999022483826]; 1506s
+  band 26-30 fold 3 layer 27: plane fit on edited rows; cos principal angles vs stale plane [0.609000027179718, 0.5479999780654907]; 1523s
+  band 26-30 fold 3 layer 28: plane fit on edited rows; cos principal angles vs stale plane [0.5529999732971191, 0.4880000054836273]; 1539s
+  band 26-30 fold 3 layer 29: plane fit on edited rows; cos principal angles vs stale plane [0.5609999895095825, 0.4659999907016754]; 1555s
+  band 26-30 fold 3 layer 30: plane fit on edited rows; cos principal angles vs stale plane [0.5540000200271606, 0.4410000145435333]; 1571s
+  band 26-30 fold 4 layer 27: plane fit on edited rows; cos principal angles vs stale plane [0.6150000095367432, 0.5410000085830688]; 1586s
+  band 26-30 fold 4 layer 28: plane fit on edited rows; cos principal angles vs stale plane [0.5630000233650208, 0.48899999260902405]; 1602s
+  band 26-30 fold 4 layer 29: plane fit on edited rows; cos principal angles vs stale plane [0.5699999928474426, 0.47600001096725464]; 1618s
+  band 26-30 fold 4 layer 30: plane fit on edited rows; cos principal angles vs stale plane [0.5929999947547913, 0.453000009059906]; 1635s
+  sequential@26-30: dPLL -0.3341 [H -0.350 E -0.352 C -0.312] top-1 0.321; layer 30 refit F1 0.230, QDA 0.780; 1774s
+       stale@26-30: dPLL -0.2054 [H -0.207 E -0.148 C -0.233] top-1 0.340; layer 30 refit F1 0.715, QDA 0.789; 1919s
+      random@26-30: dPLL -0.0038 [H -0.004 E -0.004 C -0.003] top-1 0.390; layer 30 refit F1 0.812, QDA 0.807; 2060s
+  band 20-30 fold 0 layer 21: plane fit on edited rows; cos principal angles vs stale plane [0.675000011920929, 0.5950000286102295]; 2077s
+  band 20-30 fold 0 layer 22: plane fit on edited rows; cos principal angles vs stale plane [0.6570000052452087, 0.6119999885559082]; 2093s
+  band 20-30 fold 0 layer 23: plane fit on edited rows; cos principal angles vs stale plane [0.7129999995231628, 0.6060000061988831]; 2108s
+  band 20-30 fold 0 layer 24: plane fit on edited rows; cos principal angles vs stale plane [0.6079999804496765, 0.4620000123977661]; 2125s
+  band 20-30 fold 0 layer 25: plane fit on edited rows; cos principal angles vs stale plane [0.5870000123977661, 0.5339999794960022]; 2141s
+  band 20-30 fold 0 layer 26: plane fit on edited rows; cos principal angles vs stale plane [0.5870000123977661, 0.4740000069141388]; 2158s
+  band 20-30 fold 0 layer 27: plane fit on edited rows; cos principal angles vs stale plane [0.5580000281333923, 0.49000000953674316]; 2175s
+  band 20-30 fold 0 layer 28: plane fit on edited rows; cos principal angles vs stale plane [0.453000009059906, 0.40700000524520874]; 2192s
+  band 20-30 fold 0 layer 29: plane fit on edited rows; cos principal angles vs stale plane [0.4880000054836273, 0.3370000123977661]; 2209s
+  band 20-30 fold 0 layer 30: plane fit on edited rows; cos principal angles vs stale plane [0.46000000834465027, 0.2199999988079071]; 2226s
+  band 20-30 fold 1 layer 21: plane fit on edited rows; cos principal angles vs stale plane [0.6740000247955322, 0.5839999914169312]; 2242s
+  band 20-30 fold 1 layer 22: plane fit on edited rows; cos principal angles vs stale plane [0.6669999957084656, 0.5929999947547913]; 2257s
+  band 20-30 fold 1 layer 23: plane fit on edited rows; cos principal angles vs stale plane [0.6959999799728394, 0.609000027179718]; 2273s
+  band 20-30 fold 1 layer 24: plane fit on edited rows; cos principal angles vs stale plane [0.6060000061988831, 0.4339999854564667]; 2288s
+  band 20-30 fold 1 layer 25: plane fit on edited rows; cos principal angles vs stale plane [0.574999988079071, 0.5149999856948853]; 2304s
+  band 20-30 fold 1 layer 26: plane fit on edited rows; cos principal angles vs stale plane [0.5849999785423279, 0.4690000116825104]; 2320s
+  band 20-30 fold 1 layer 27: plane fit on edited rows; cos principal angles vs stale plane [0.5600000023841858, 0.47699999809265137]; 2336s
+  band 20-30 fold 1 layer 28: plane fit on edited rows; cos principal angles vs stale plane [0.4259999990463257, 0.38199999928474426]; 2353s
+  band 20-30 fold 1 layer 29: plane fit on edited rows; cos principal angles vs stale plane [0.4790000021457672, 0.31700000166893005]; 2369s
+  band 20-30 fold 1 layer 30: plane fit on edited rows; cos principal angles vs stale plane [0.44600000977516174, 0.2029999941587448]; 2386s
+  band 20-30 fold 2 layer 21: plane fit on edited rows; cos principal angles vs stale plane [0.6779999732971191, 0.6100000143051147]; 2401s
+  band 20-30 fold 2 layer 22: plane fit on edited rows; cos principal angles vs stale plane [0.6700000166893005, 0.6060000061988831]; 2416s
+  band 20-30 fold 2 layer 23: plane fit on edited rows; cos principal angles vs stale plane [0.7139999866485596, 0.6110000014305115]; 2432s
+  band 20-30 fold 2 layer 24: plane fit on edited rows; cos principal angles vs stale plane [0.5979999899864197, 0.46299999952316284]; 2447s
+  band 20-30 fold 2 layer 25: plane fit on edited rows; cos principal angles vs stale plane [0.5759999752044678, 0.515999972820282]; 2463s
+  band 20-30 fold 2 layer 26: plane fit on edited rows; cos principal angles vs stale plane [0.5820000171661377, 0.4749999940395355]; 2479s
+  band 20-30 fold 2 layer 27: plane fit on edited rows; cos principal angles vs stale plane [0.5550000071525574, 0.4699999988079071]; 2494s
+  band 20-30 fold 2 layer 28: plane fit on edited rows; cos principal angles vs stale plane [0.4399999976158142, 0.39800000190734863]; 2510s
+  band 20-30 fold 2 layer 29: plane fit on edited rows; cos principal angles vs stale plane [0.4819999933242798, 0.33000001311302185]; 2527s
+  band 20-30 fold 2 layer 30: plane fit on edited rows; cos principal angles vs stale plane [0.4490000009536743, 0.21799999475479126]; 2543s
+  band 20-30 fold 3 layer 21: plane fit on edited rows; cos principal angles vs stale plane [0.6819999814033508, 0.6010000109672546]; 2558s
+  band 20-30 fold 3 layer 22: plane fit on edited rows; cos principal angles vs stale plane [0.6600000262260437, 0.609000027179718]; 2574s
+  band 20-30 fold 3 layer 23: plane fit on edited rows; cos principal angles vs stale plane [0.7179999947547913, 0.6150000095367432]; 2590s
+  band 20-30 fold 3 layer 24: plane fit on edited rows; cos principal angles vs stale plane [0.6100000143051147, 0.45399999618530273]; 2606s
+  band 20-30 fold 3 layer 25: plane fit on edited rows; cos principal angles vs stale plane [0.5889999866485596, 0.5149999856948853]; 2622s
+  band 20-30 fold 3 layer 26: plane fit on edited rows; cos principal angles vs stale plane [0.5920000076293945, 0.4830000102519989]; 2638s
+  band 20-30 fold 3 layer 27: plane fit on edited rows; cos principal angles vs stale plane [0.5550000071525574, 0.4749999940395355]; 2654s
+  band 20-30 fold 3 layer 28: plane fit on edited rows; cos principal angles vs stale plane [0.42399999499320984, 0.38499999046325684]; 2671s
+  band 20-30 fold 3 layer 29: plane fit on edited rows; cos principal angles vs stale plane [0.4819999933242798, 0.3319999873638153]; 2688s
+  band 20-30 fold 3 layer 30: plane fit on edited rows; cos principal angles vs stale plane [0.4449999928474426, 0.2549999952316284]; 2707s
+  band 20-30 fold 4 layer 21: plane fit on edited rows; cos principal angles vs stale plane [0.675000011920929, 0.5849999785423279]; 2723s
+  band 20-30 fold 4 layer 22: plane fit on edited rows; cos principal angles vs stale plane [0.6579999923706055, 0.6100000143051147]; 2739s
+  band 20-30 fold 4 layer 23: plane fit on edited rows; cos principal angles vs stale plane [0.7080000042915344, 0.6039999723434448]; 2755s
+  band 20-30 fold 4 layer 24: plane fit on edited rows; cos principal angles vs stale plane [0.6029999852180481, 0.43799999356269836]; 2772s
+  band 20-30 fold 4 layer 25: plane fit on edited rows; cos principal angles vs stale plane [0.5799999833106995, 0.5120000243186951]; 2788s
+  band 20-30 fold 4 layer 26: plane fit on edited rows; cos principal angles vs stale plane [0.5889999866485596, 0.48100000619888306]; 2805s
+  band 20-30 fold 4 layer 27: plane fit on edited rows; cos principal angles vs stale plane [0.5550000071525574, 0.46399998664855957]; 2822s
+  band 20-30 fold 4 layer 28: plane fit on edited rows; cos principal angles vs stale plane [0.43799999356269836, 0.382999986410141]; 2840s
+  band 20-30 fold 4 layer 29: plane fit on edited rows; cos principal angles vs stale plane [0.4699999988079071, 0.33500000834465027]; 2857s
+  band 20-30 fold 4 layer 30: plane fit on edited rows; cos principal angles vs stale plane [0.453000009059906, 0.22499999403953552]; 2875s
+  sequential@20-30: dPLL -0.7134 [H -0.707 E -0.883 C -0.635] top-1 0.194; layer 30 refit F1 0.243, QDA 0.737; 3019s
+       stale@20-30: dPLL -0.3267 [H -0.316 E -0.307 C -0.346] top-1 0.306; layer 30 refit F1 0.744, QDA 0.778; 3165s
+      random@20-30: dPLL -0.0132 [H -0.013 E -0.015 C -0.012] top-1 0.388; layer 30 refit F1 0.811, QDA 0.806; 3306s
+done in 3306s -> results/p10/esm2_t30_150M
