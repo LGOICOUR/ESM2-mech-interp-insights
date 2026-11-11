@@ -20,3 +20,10 @@ results/p4/*/per_residue.npz
 
 # per-residue read-outs for every steering condition (p5_steer.py regenerates them)
 results/p5/*/per_residue.npz
+
+# sequences, labels and per-residue read-outs (p1_data.py and the phase scripts regenerate them;
+# the label files have no stated licence, so this repo does not redistribute them in any form)
+results/p1/proteins.jsonl
+results/p2/*/residues.npz
+results/p3/*/yhat_by_layer.npy
+results/*/*/per_residue.npz
