@@ -316,8 +316,10 @@ ones lose -0.013. Random plane: 0.81 and 0.000 everywhere. `results/p7/`.
 
 **P8, erase the shape too: does the model use it?** Quadratic erasure as a forward-pass
 intervention: after the plane, each class's cloud is mapped onto the pooled covariance by
-the optimal-transport (Bures) map between Gaussians, the same construction as QLEACE
-(Belrose et al. 2025), applied here at labelled positions with the true label (unlabelled
+the optimal-transport (Bures) map between Gaussians. This is the map QLEACE uses (Quirke
+and Belrose 2025, arXiv 2502.02820), with a different target: QLEACE sends every class to
+the Wasserstein barycenter of the class Gaussians, this edit to the pooled within-class
+covariance. It is applied here at labelled positions with the true label (unlabelled
 positions get the plane only). Control: the same maps applied with shuffled labels (moves
 rows further, erases nothing). Model loss: plane **-0.063 (6%)**, plane + shape **-0.103
 (10%)**, shuffled **-0.081 (8%)**; by class the shape costs helix about 4 points over its

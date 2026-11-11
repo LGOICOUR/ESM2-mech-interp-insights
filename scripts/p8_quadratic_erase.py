@@ -13,9 +13,11 @@ The edit at L*, per residue row h with class c (DSSP label):
      class c's covariance to the pooled within-class covariance:
          T_c = S_c^{-1/2} (S_c^{1/2} S_pool S_c^{1/2})^{1/2} S_c^{-1/2},
      so after the edit every class has mean mu and covariance S_pool on the
-     training rows: no quadratic reader can beat chance there. This is the
-     closed-form quadratic erasure of Belrose et al. (QLEACE, arXiv 2502.02820),
-     applied as a forward-pass intervention. The edit needs the row's label; residue
+     training rows: no quadratic reader can beat chance there. This is the map of
+     the closed-form quadratic erasure of Quirke and Belrose (QLEACE, arXiv
+     2502.02820), whose target is the Wasserstein barycenter of the class Gaussians
+     where this one is S_pool. It is applied here as a forward-pass intervention.
+     The edit needs the row's label; residue
      positions without a DSSP label get step 1 only.
 Control: the same maps T_c applied to rows with a shuffled class assignment (drawn
 per row from the class frequencies), so the edits are of the same kind and size but
