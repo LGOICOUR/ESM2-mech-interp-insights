@@ -1,4 +1,4 @@
-# esm2-probe-ablation
+# ESM2-mech-interp-insights
 
 **A protein language model's residual stream decodes secondary structure. Is that direction load-bearing for what the model itself predicts?**
 
@@ -16,8 +16,11 @@ activations to ask whether the direction was the concept or one line through it;
 (5) add the direction back to coil residues, in doses, and ask whether the model's
 predicted chemistry moves the way the biology says.
 
-This is a research exercise on a small open model, not a tool. Nothing here has
-been reviewed by anyone but the agent that built it (see "How this was built").
+This is a research exercise on a small open model, not a tool. Coding agents
+wrote and ran the code. Luis Goicouria set the direction of the second half of
+the project, gave a guess before each of its results was shown, and has reviewed
+every result and the reasoning behind it. No human has reviewed the code line by
+line (see "How this was built").
 
 ## Headline
 
@@ -409,7 +412,8 @@ plane, so a linear reader at 30 keeps 0.38-0.41 after it; QDA stays 0.74-0.81.
   seed; one random direction per fold and layer as control (two for the planes).
   The controls are tight enough (−0.000 to −0.006, CIs ±0.001) that more draws
   would not change the reading.
-- **Built and run by an agent; not yet reviewed by Luis** (see below).
+- **Code written and run by an agent, and not reviewed line by line by a human.**
+  Luis has reviewed every result and the reasoning behind it (see below).
 
 ## Data
 
@@ -540,8 +544,31 @@ nothing downstream can rebuild it). He pre-registered a guess before each
 result was shown. The agent wrote and ran all code, ran the literature checks,
 found and fixed the per-fold artefact in P8's second-order readers, found the
 stale-plane flaw in P4's band condition that P10 corrects, and added the
-composition control to P9. Luis has reviewed the results and the reasoning,
-not the code; the write-up prose remains the agent's.
+composition control to P9.
+
+On 2026-11-09 and 2026-11-10 Luis wrote the public write-up of these results
+himself, sentence by sentence, over four drafts. The agent checked every claim
+in each draft against the result files and answered in numbered margin notes
+with a verdict and the repo's value. It did not draft his prose; two sentences
+carry small corrections he asked for. He disputed several notes, and on five
+the results backed him and the note was withdrawn. He chose which results the
+write-up reports, how they are framed and what it leaves out. The agent
+assembled the write-up's tables from the summary tables here and drew its
+figure (`scripts/post_fig1.py`, `results/post/`); the table headers, captions
+and figure text are the agent's. Two paired comparisons in those tables (the
+shape erasure against its shuffled-label control, and the cost at an erased row
+when every position is erased against one position in ten) were computed from
+the per-residue read-outs for the write-up and are not yet scripted in this
+repository. Luis decided on 2026-11-10 to make the repository public. Before
+the first push the history was rewritten once, with commit dates and messages
+unchanged, to remove a personal remark from the first entry of `DECISIONS.md`
+and to drop the files that carry sequences, labels or per-residue read-outs
+(see Data).
+
+Where that leaves review: Luis has reviewed every result and the reasoning
+behind it, and has not read the code. No human has reviewed the code line by
+line. The prose of this README and of `DECISIONS.md` is the agent's; the prose
+of the write-up is Luis's.
 
 ## Acknowledgements
 

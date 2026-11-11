@@ -747,3 +747,23 @@ numbers and structure-proper remains 6 / 12 / 33%; (3) **right**: layer-30 linea
 0.41 / 0.38 / 0.39; (4) **right**: QDA 0.81 / 0.78 / 0.74. The wide-band structure-proper
 cost is real: keeping structure erased across layers 20-30 costs a third of the model's
 likelihood. Luis has not reviewed this entry.
+
+## 2026-11-09 to 2026-11-10 — Review, write-up and publication (Luis decided; Claude recorded)
+
+The entries above end "Luis has not reviewed this" because each was written the day its
+experiment ran. They are left as written, and they are no longer the state of things. Between
+2026-11-02 and 2026-11-06 Luis reviewed every phase's results in conversation, restating each
+number and what it means, and gave a guess before each of P6 to P10 was shown (README, "How
+this was built"). He has not read the code.
+
+- **Write-up** (Luis): on 2026-11-09 and 2026-11-10 he wrote the public write-up himself over
+  four drafts. Claude checked every claim in each draft against the result files and returned
+  numbered notes holding a verdict and the repo's value. He disputed several; on five the
+  results backed him and the note was withdrawn. Claude assembled the tables and drew the
+  figure (`scripts/post_fig1.py`).
+- **Publication** (Luis, 2026-11-10): public as `ESM2-mech-interp-insights`. Claude flagged two
+  things before the first push and Luis decided both: a personal remark in the first entry of
+  this file was removed from every commit, and the files that carry sequences, labels or
+  per-residue read-outs were dropped from the history and git-ignored. Commit dates and
+  messages are unchanged; commit hashes are not.
+- **README** (Luis asked, 2026-11-10): its statements about review were brought up to date.
